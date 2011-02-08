@@ -2,73 +2,61 @@ package Text::KnuthPlass;
 use warnings;
 use strict;
 
-# This is partially an experiment to see if using Moose makes me hate it less
-use Moose;
-use feature ":5.10"; # THIS IS MODERN PERL!
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 use Data::Dumper;
 
 package Text::KnuthPlass::Element;
-use Moose;
+use base 'Class::Accessor';
+__PACKAGE__->mk_accessors("width");
+sub new { my $self = shift; bless { width => 0, @_ }, $self }
 sub is_penalty { return shift->isa("Text::KnuthPlass::Penalty") }
-has 'width' => (is => 'rw', isa => 'Num', default => 0);
+sub is_glue    { return shift->isa("Text::KnuthPlass::Glue") }
 
 package Text::KnuthPlass::Box; 
-use Moose; # No, still hating it. This kind of thing should be global.
-extends 'Text::KnuthPlass::Element';
-has 'value' => (is => 'rw', isa => "Str");
+use base 'Text::KnuthPlass::Element';
+__PACKAGE__->mk_accessors("value");
 
 sub _txt { return "[".$_[0]->value."/".$_[0]->width."]"; }
 
 
 package Text::KnuthPlass::Glue;
-use Moose; # What was that rule about not having to repeat yourself?
-extends 'Text::KnuthPlass::Element';
-has 'stretch' => (is => 'rw', isa => 'Num');
-has 'shrink' => (is => 'rw', isa => 'Num');
+use base 'Text::KnuthPlass::Element';
+__PACKAGE__->mk_accessors("stretch", "shrink");
 
-sub _txt { return "<".$_[0]->width."+".$_[0]->stretch."-".$_[0]->shrink.">"; }
+sub new { my $self = shift; $self->SUPER::new(stretch => 0, shrink => 0, @_) }
+sub _txt { return sprintf "<%.2f+%.2f-%.2f>", $_[0]->width, $_[0]->stretch, $_[0]->shrink; }
+
 package Text::KnuthPlass::Penalty;
-use Moose; # What was that rule about not having to repeat yourself?
-extends 'Text::KnuthPlass::Element';
-has 'penalty' => (is => 'rw', isa => 'Num');
-has 'shrink' => (is => 'rw', isa => 'Num');
-has 'flagged' => (is => 'rw', isa => 'Bool');
+use base 'Text::KnuthPlass::Element';
+__PACKAGE__->mk_accessors("penalty", "flagged", "shrink");
+sub new { my $self = shift; $self->SUPER::new(flagged => 0, shrink => 0, @_) }
 sub _txt { "(".$_[0]->penalty.($_[0]->flagged &&"!").")"; }
 
 package Text::KnuthPlass::Breakpoint;
-use Moose;
-has 'position' => is => 'rw';
-has 'demerits' => is => 'rw';
-has 'ratio' => is => 'rw';
-has 'line' => is => 'rw';
-has 'fitnessClass' => is => 'rw';
-has 'totals' => is => 'rw';
-has 'previous' => is => 'rw';
+use base 'Text::KnuthPlass::Element';
+__PACKAGE__->mk_accessors(qw/position demerits ratio line fitnessClass totals previous/);
 
 package Text::KnuthPlass::DummyHyphenator;
-use Moose;
+use base 'Class::Accessor';
 sub hyphenate { return $_[1] }
 
 package Text::KnuthPlass;
-has 'infinity', is => 'rw', default => "1000";
-has 'tolerance', is => 'rw', default => 3;
-has 'hyphenpenalty', is => 'rw', default => 50;
-has 'demerits', is => 'rw', default => sub {; # Why?
-    { line => 10, flagged => 100, fitness => 3000 } 
-}; 
-has 'space', is => 'rw', default => sub {; 
-    { width => 3, stretch => 6, shrink => 9 }
-}; 
-has 'linelengths', is => 'rw', default => sub { [ 78 ] };
-has 'measure', is => "ro", isa => "CodeRef", 
-    default => sub { sub { # Oh, come on, really.
-        length($_[0]) 
-    } };
-has 'hyphenator', is => 'ro', isa => "Object", default => sub {
-    eval { require Text::Hyphen } ? Text::Hyphen->new() :
-    Text::KnuthPlass::DummyHyphenator->new();
-};
+use base 'Class::Accessor';
+
+my %defaults = (
+    infinity => 1000,
+    tolerance => 3,
+    hyphenpenalty => 50,
+    demerits => { line => 10, flagged => 100, fitness => 3000 },
+    space => { width => 3, stretch => 6, shrink => 9 },
+    linelengths => [78],
+    measure => sub { length $_[0] },
+    hyphenator => 
+        eval { require Text::Hyphen } ? Text::Hyphen->new() :
+        Text::KnuthPlass::DummyHyphenator->new()
+);
+__PACKAGE__->mk_accessors(keys %defaults);
+sub new { my $self = shift; bless {%defaults, @_}, $self }
 
 =head1 NAME
 
@@ -210,8 +198,8 @@ This method is a thin wrapper around the three methods below.
 =cut
 
 sub typeset {
-    my ($t, $paragraph) = @_;
-    my @nodes = $t->break_text_into_nodes($paragraph);
+    my ($t, $paragraph, @args) = @_;
+    my @nodes = $t->break_text_into_nodes($paragraph, @args);
     my @breakpoints = $t->break(\@nodes);
     return unless @breakpoints;
     my @lines = $t->breakpoints_to_lines(\@breakpoints, \@nodes);
@@ -240,7 +228,7 @@ the list of nodes to the methods below, instead of using this method.
 sub break_text_into_nodes {
     my ($self, $text, $style) = @_;
     my @nodes;
-    my $emwidth    = $self->measure->("m");
+    my $emwidth    = $self->measure->("M");
     my $spacewidth = $self->measure->(" ");
     my @words = split /\s+/, $text;
     my $spacestretch = $spacewidth * $self->space->{width} / $self->space->{stretch};
@@ -260,36 +248,24 @@ sub break_text_into_nodes {
             
         }
     };
-    given($style) {
-        #when (/^left/i) { 
-        #}
-        #when (/^cent(er|re)/i) {
-        #    push @nodes, Text::KnuthPlass::Box->new(width => 0, value => ''),
-        #        Text::KnuthPlass::Glue->new(width => 0, stretch => 12, shrink => 0);
-        #    for (0..$#words) { my $word = $words[$_];
-        #        $add_word->($word);
-        #    }
-        #}
-        default { 
-             for (0..$#words) { my $word = $words[$_];
-                 $add_word->($word);
-                 if ($_ == $#words) {
-                    push @nodes, 
-                        Text::KnuthPlass::Glue->new(
-                            width => 0, 
-                            stretch => $self->infinity, 
-                            shrink => 0),
-                        Text::KnuthPlass::Penalty->new(width => 0, penalty => -$self->infinity, flagged => 1);
-                 } else {
-                    push @nodes, 
-                        Text::KnuthPlass::Glue->new(
-                            width => $spacewidth,
-                            stretch => $spacestretch,
-                            shrink => $spaceshrink
-                        );
-                 }
-             }
-        }
+
+    for (0..$#words) { my $word = $words[$_];
+        $add_word->($word);
+        if ($_ == $#words) {
+           push @nodes, 
+               Text::KnuthPlass::Glue->new(
+                   width => 0, 
+                   stretch => $self->infinity, 
+                   shrink => 0),
+               Text::KnuthPlass::Penalty->new(width => 0, penalty => -$self->infinity, flagged => 1);
+        } else {
+           push @nodes, 
+               Text::KnuthPlass::Glue->new(
+                   width => $spacewidth,
+                   stretch => $spacestretch,
+                   shrink => $spaceshrink
+               );
+       }
     }
     return @nodes;
 }

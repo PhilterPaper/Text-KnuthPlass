@@ -1,33 +1,23 @@
----
-abstract: 'Breaks paragraphs into lines using the TeX algorithm'
-author:
-  - 'Simon Cozens <simon@cpan.org>'
-build_requires:
-  Moose: 0
-  Test::More: 0
-  Text::Hyphen: 0
+--- #YAML:1.0
+name:               Text-KnuthPlass
+version:            0.02
+abstract:           ~
+author:  []
+license:            unknown
+distribution_type:  module
 configure_requires:
-  Module::Build: 0.36
-generated_by: 'Module::Build version 0.3623'
-license: Perl
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
+requires:
+    Moose:         0
+    Test::More:    0
+    Text::Hyphen:  0
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.56
 meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
-name: Text-KnuthPlass
-provides:
-  Text::KnuthPlass:
-    file: lib/Text/KnuthPlass.pm
-    version: 0.01
-  Text::KnuthPlass::Box:
-    file: lib/Text/KnuthPlass.pm
-  Text::KnuthPlass::Breakpoint:
-    file: lib/Text/KnuthPlass.pm
-  Text::KnuthPlass::DummyHyphenator:
-    file: lib/Text/KnuthPlass.pm
-  Text::KnuthPlass::Element:
-    file: lib/Text/KnuthPlass.pm
-  Text::KnuthPlass::Glue:
-    file: lib/Text/KnuthPlass.pm
-  Text::KnuthPlass::Penalty:
-    file: lib/Text/KnuthPlass.pm
-version: 0.01
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

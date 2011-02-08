@@ -1,5 +1,16 @@
-Revision history for Text-KnuthPlass
+2011-02-08  Simon Cozens <simon@simon-cozens.org>
 
-0.01    Date/time
-        First version, released on an unsuspecting world.
+  * lib/Text/KnuthPlass.pm: Demodernify, up the version number.
 
+  * Build, Build.PL, lib/Text/KnuthPlass.pm: DeMoosify for speed and sanity.
+
+  * lib/Text/KnuthPlass.pm: Add flexibility by passing on more arguments.
+
+  * lib/Text/KnuthPlass.pm: 1 em is a capital M, not a small m.
+
+2011-02-08  Simon Cozens <simon@cpan.org>
+
+  * Build.PL, Changes, MANIFEST, META.yml, Makefile.PL, README,
+  lib/Text/KnuthPlass.pm, t/00-load.t, t/pod-coverage.t, t/pod.t: initial
+  import of Text::KnuthPlass 0.01 from CPAN  git-cpan-module:  
+  Text::KnuthPlass git-cpan-version:  0.01 git-cpan-authorid: SIMON
