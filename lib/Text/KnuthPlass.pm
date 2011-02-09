@@ -1,8 +1,9 @@
 package Text::KnuthPlass;
+use constant DEBUG => 0;
 use warnings;
 use strict;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 use Data::Dumper;
 
 package Text::KnuthPlass::Element;
@@ -44,8 +45,8 @@ package Text::KnuthPlass;
 use base 'Class::Accessor';
 
 my %defaults = (
-    infinity => 1000,
-    tolerance => 3,
+    infinity => 10000,
+    tolerance => 30,
     hyphenpenalty => 50,
     demerits => { line => 10, flagged => 100, fitness => 3000 },
     space => { width => 3, stretch => 6, shrink => 9 },
@@ -136,12 +137,7 @@ value: the default is C< [78] >.
 =item tolerance
 
 How much leeway we have in leaving wider spaces than the algorithm
-would prefer. Note that this should be set much lower than TeX's
-C<\tolerance>. The default is 3, which is enough for most purposes.
-If you find that the algorithm cannot find a reasonable set of
-breakpoints (it will return an empty list) then you will need to
-increase this. The higher this goes, the more gappy the lines will
-appear.
+would prefer. 
 
 =item hyphenator
 
@@ -225,49 +221,88 @@ the list of nodes to the methods below, instead of using this method.
 
 =cut
 
+sub _add_word {
+    my ($self, $word, $nodes_r) = @_;
+    my @elems = $self->hyphenator->hyphenate($word);
+    for (0..$#elems) {
+        push @{$nodes_r}, Text::KnuthPlass::Box->new(
+            width => $self->measure->($elems[$_]), 
+            value => $elems[$_]
+        );
+        if ($_ != $#elems) {
+            push @{$nodes_r}, Text::KnuthPlass::Penalty->new(
+                flagged => 1, penalty => $self->hyphenpenalty);
+        }
+    }
+}
+
 sub break_text_into_nodes {
     my ($self, $text, $style) = @_;
     my @nodes;
-    my $emwidth    = $self->measure->("M");
-    my $spacewidth = $self->measure->(" ");
     my @words = split /\s+/, $text;
-    my $spacestretch = $spacewidth * $self->space->{width} / $self->space->{stretch};
-    my $spaceshrink = $spacewidth * $self->space->{width} / $self->space->{shrink};
-    my $add_word = sub { 
-        my $word = shift;
-        my @elems = $self->hyphenator->hyphenate($word);
-        for (0..$#elems) {
-            push @nodes, Text::KnuthPlass::Box->new(
-                width => $self->measure->($elems[$_]), 
-                value => $elems[$_]
-            );
-            if ($_ != $#elems) {
-                push @nodes, Text::KnuthPlass::Penalty->new(
-                    flagged => 1, penalty => $self->hyphenpenalty);
-            }
-            
-        }
-    };
+
+    $self->{emwidth}      = $self->measure->("M");
+    $self->{spacewidth}   = $self->measure->(" ");
+    $self->{spacestretch} = $self->{spacewidth} * $self->space->{width} / $self->space->{stretch};
+    $self->{spaceshrink}  = $self->{spacewidth} * $self->space->{width} / $self->space->{shrink};
+
+    $style ||= "justify";
+    my $spacing_type = "_add_space_$style";
+    my $start = "_start_$style";
+    $self->$start(\@nodes);
 
     for (0..$#words) { my $word = $words[$_];
-        $add_word->($word);
-        if ($_ == $#words) {
-           push @nodes, 
-               Text::KnuthPlass::Glue->new(
-                   width => 0, 
-                   stretch => $self->infinity, 
-                   shrink => 0),
-               Text::KnuthPlass::Penalty->new(width => 0, penalty => -$self->infinity, flagged => 1);
-        } else {
-           push @nodes, 
-               Text::KnuthPlass::Glue->new(
-                   width => $spacewidth,
-                   stretch => $spacestretch,
-                   shrink => $spaceshrink
-               );
-       }
+        $self->_add_word($word, \@nodes);
+        $self->$spacing_type(\@nodes,$_ == $#words);
     }
     return @nodes;
+}
+
+sub _start_justify { }
+sub _add_space_justify {
+    my ($self, $nodes_r, $final) = @_;
+    if ($final) { 
+       push @{$nodes_r}, 
+           Text::KnuthPlass::Glue->new(
+               width => 0, 
+               stretch => $self->infinity, 
+               shrink => 0),
+           Text::KnuthPlass::Penalty->new(width => 0, penalty => -$self->infinity, flagged => 1);
+    } else {
+       push @{$nodes_r}, 
+           Text::KnuthPlass::Glue->new(
+               width => $self->{spacewidth},
+               stretch => $self->{spacestretch},
+               shrink => $self->{spaceshrink}
+           );
+   }
+}
+
+sub _start_center {
+    my ($self, $nodes_r) = @_;
+    push @{$nodes_r}, 
+        Text::KnuthPlass::Box->new(value => ""),
+        Text::KnuthPlass::Glue->new(
+            width => 0, 
+            stretch => 2*$self->{emwidth},
+            shrink => 0)
+}
+
+sub _add_space_center {
+    my ($self, $nodes_r, $final) = @_;
+    if ($final) {
+        push @{$nodes_r}, 
+            Text::KnuthPlass::Glue->new( width => 0, stretch => 2*$self->{emwidth}, shrink => 0),
+            Text::KnuthPlass::Penalty->new(width => 0, penalty => -$self->infinity, flagged => 0);
+    } else {
+        push @{$nodes_r}, 
+            Text::KnuthPlass::Glue->new( width => 0, stretch => 2*$self->{emwidth}, shrink => 0),
+            Text::KnuthPlass::Penalty->new(width => 0, penalty => 0, flagged => 0),
+            Text::KnuthPlass::Glue->new( width => $self->{spacewidth}, stretch => -4*$self->{emwidth}, shrink => 0),
+            Text::KnuthPlass::Box->new(value => ""),
+            Text::KnuthPlass::Penalty->new(width => 0, penalty => $self->infinity, flagged => 0),
+            Text::KnuthPlass::Glue->new( width => 0, stretch => 2*$self->{emwidth}, shrink => 0),
+    }
 }
 
 =head2 break
@@ -292,7 +327,6 @@ sub break {
 
     for (0..$#$nodes) { 
         my $node = $nodes->[$_];
-        #warn "active nodes at pos $_: @{$self->{activeNodes}}";
         if ($node->isa("Text::KnuthPlass::Box")) {
             $self->{sum}{width} += $node->width;
         } elsif ($node->isa("Text::KnuthPlass::Glue")) {
@@ -323,21 +357,28 @@ sub break {
 
 sub _mainloop {
     my ($self, $node, $index, $nodes) = @_;
-    my $ptr = 0;
     my $next; my $ratio = 0; my $demerits = 0; my @candidates;
     my $badness; my $currentLine = 0; my $tmpSum; my $currentClass = 0;
-    while (my $active = $self->{activeNodes}[$ptr]) {
+    my $active = $self->{activeNodes}[0];
+    my $ptr = 0;
+    while ($active) { 
         @candidates = ( {demerits => ~0}, {demerits => ~0},{demerits => ~0},{demerits => ~0} ); 
-        while ($active = $self->{activeNodes}[$ptr]) {
+        warn  "Outer" if DEBUG;
+        while ($active) { 
+            my $next = $self->{activeNodes}[++$ptr];
+            warn  "Inner loop" if DEBUG;
             $currentLine = $active->line+1;
             $ratio = $self->_computeCost($active->position, $index, $active, $currentLine, $nodes);
-            #warn "Got a ratio of $ratio, node is ".$node->_txt;
+            warn  "Got a ratio of $ratio, node is ".$node->_txt if DEBUG;
             if ($ratio < -1 or 
                 ($node->is_penalty and $node->penalty == -$self->infinity)) {
-                splice(@{$self->{activeNodes}}, $ptr, 1);
+                warn  "Dropping a node" if DEBUG;
+                $self->{activeNodes} = [ grep {$_ != $active} @{$self->{activeNodes}} ];
+                $ptr--;
             }
             if (-1 <= $ratio and $ratio <= $self->tolerance) {
                 $badness = 100 * $ratio**3;
+                warn  "Badness is $badness" if DEBUG;
                 if ($node->is_penalty and $node->penalty > 0) {
                     $demerits = ($self->demerits->{line} + $badness +
                         $node->penalty)**2;
@@ -370,9 +411,10 @@ sub _mainloop {
                     };
                 }
             }
-            $ptr++;
-            last if !$self->{activeNodes}[$ptr] or
-                $self->{activeNodes}[$ptr]->line >= $currentLine;
+            $active = $next;
+            #warn "Active is now $active" if DEBUG;
+            last if !$active or 
+                $active->line >= $currentLine;
         }
         $tmpSum = $self->_computeSum($index, $nodes);
         for (0..3) { my $c = $candidates[$_];
@@ -386,9 +428,25 @@ sub _mainloop {
                     totals => $tmpSum,
                     previous => $c->{active}
                 );
-                if ($active) { splice @{$self->{activeNodes}}, $ptr-1, 1, $newnode }
-                else { push @{$self->{activeNodes}}, $newnode }
-                
+                if ($active) { 
+                    warn  "Before" if DEBUG;
+                    my @newlist;
+                    for (@{$self->{activeNodes}}) {
+                        if ($_ == $active) { push @newlist, $newnode }
+                         push @newlist, $_;
+                    }
+                    $ptr++;
+                    $self->{activeNodes} = [ @newlist ];
+                    #    grep {;
+                    #       ($_ == $active) ? ($newnode, $active) : ($_)
+                    #} @{$self->{activeNodes}}
+                    # ];
+                }
+                else { 
+                    warn  "After" if DEBUG;
+                    push @{$self->{activeNodes}}, $newnode 
+                }
+                warn  @{$self->{activeNodes}} if DEBUG;
             }
         }
     }
@@ -396,6 +454,7 @@ sub _mainloop {
 
 sub _computeCost {
     my ($self, $start, $end, $active, $currentLine, $nodes) = @_;
+    warn  "Computing cost from $start to $end" if DEBUG;
     my $width = $self->{sum}{width} - $active->totals->{width};
     my $stretch = 0; my $shrink = 0;
     my $linelength = $currentLine < @{$self->linelengths} ? 
@@ -405,13 +464,13 @@ sub _computeCost {
     $width += $nodes->[$end]->width if $nodes->[$end]->is_penalty;
     if ($width < $linelength) {
         $stretch = $self->{sum}{stretch} - $active->totals->{stretch};
-        #warn "Stretch: $stretch";
+        #warn  "Stretch: $stretch" if DEBUG;
         if ($stretch > 0) {
             return ($linelength - $width) / $stretch;
         } else { return $self->infinity}
     } elsif ($width > $linelength) {
         $shrink = $self->{sum}{shrink} - $active->totals->{shrink};
-        #warn "Shrink: $shrink";
+        #warn  "Shrink: $shrink" if DEBUG;
         if ($shrink > 0) {
             return ($linelength - $width) / $shrink;
         } else { return $self->infinity}
@@ -444,20 +503,25 @@ lines.
 sub breakpoints_to_lines {
     my ($self, $breakpoints, $nodes) = @_;
     my @lines;
-    shift @$breakpoints;
     my $linestart = 0;
-    for (@$breakpoints) {
+    for my $x (1 .. $#$breakpoints) { $_ = $breakpoints->[$x];
+        my $position = $_->{position};
+        my $r = $_->{ratio};
         for ($linestart..$#$nodes) {
             if ($nodes->[$_]->isa("Text::KnuthPlass::Box") or
-            ($nodes->[$_]->is_penalty and $nodes->[$_]->penalty ==-1000)) {
+            ($nodes->[$_]->is_penalty and $nodes->[$_]->penalty ==-$self->infinity)) {
                 $linestart = $_;
                 last;
             }
         }
-        push @lines, { ratio => $_->{ratio}, position => $_->{position},
-                nodes => [ @{$nodes}[$linestart..$_->{position}] ]};
+        push @lines, { ratio => $r, position => $_->{position},
+                nodes => [ @{$nodes}[$linestart..$position] ]};
         $linestart = $_->{position};
     }
+    #if ($linestart < $#$nodes) { 
+    #    push @lines, { ratio => 1, position => $#$nodes,
+    #            nodes => [ @{$nodes}[$linestart+1..$#$nodes] ]};
+    #}
     return @lines;
 }
 
