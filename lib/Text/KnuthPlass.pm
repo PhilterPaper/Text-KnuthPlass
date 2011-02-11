@@ -1,9 +1,12 @@
 package Text::KnuthPlass;
+require XSLoader;
 use constant DEBUG => 0;
 use warnings;
 use strict;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
+eval { XSLoader::load("Text::KnuthPlass", $VERSION); };
+# Or else there's a Perl version
 use Data::Dumper;
 
 package Text::KnuthPlass::Element;
@@ -263,14 +266,13 @@ sub _add_space_justify {
     my ($self, $nodes_r, $final) = @_;
     if ($final) { 
        push @{$nodes_r}, 
-           Text::KnuthPlass::Glue->new(
+           $self->glueclass->new(
                width => 0, 
                stretch => $self->infinity, 
                shrink => 0),
-           Text::KnuthPlass::Penalty->new(width => 0, penalty => -$self->infinity, flagged => 1);
+           $self->penaltyclass->new(width => 0, penalty => -$self->infinity, flagged => 1);
     } else {
-       push @{$nodes_r}, 
-           Text::KnuthPlass::Glue->new(
+       push @{$nodes_r}, $self->glueclass->new(
                width => $self->{spacewidth},
                stretch => $self->{spacestretch},
                shrink => $self->{spaceshrink}
@@ -363,22 +365,22 @@ sub _mainloop {
     my $ptr = 0;
     while ($active) { 
         @candidates = ( {demerits => ~0}, {demerits => ~0},{demerits => ~0},{demerits => ~0} ); 
-        warn  "Outer" if DEBUG;
+        warn  "Outer\n" if DEBUG;
         while ($active) { 
             my $next = $self->{activeNodes}[++$ptr];
-            warn  "Inner loop" if DEBUG;
+            warn  "Inner loop\n" if DEBUG;
             $currentLine = $active->line+1;
             $ratio = $self->_computeCost($active->position, $index, $active, $currentLine, $nodes);
-            warn  "Got a ratio of $ratio, node is ".$node->_txt if DEBUG;
+            warn  "Got a ratio of $ratio, node is ".$node->_txt."\n" if DEBUG;
             if ($ratio < -1 or 
                 ($node->is_penalty and $node->penalty == -$self->infinity)) {
-                warn  "Dropping a node" if DEBUG;
+                warn  "Dropping a node\n" if DEBUG;
                 $self->{activeNodes} = [ grep {$_ != $active} @{$self->{activeNodes}} ];
                 $ptr--;
             }
             if (-1 <= $ratio and $ratio <= $self->tolerance) {
                 $badness = 100 * $ratio**3;
-                warn  "Badness is $badness" if DEBUG;
+                warn  "Badness is $badness\n" if DEBUG;
                 if ($node->is_penalty and $node->penalty > 0) {
                     $demerits = ($self->demerits->{line} + $badness +
                         $node->penalty)**2;
@@ -405,6 +407,7 @@ sub _mainloop {
 
                 $demerits += $active->demerits;
                 if ($demerits < $candidates[$currentClass]->{demerits}) {
+                    warn "Setting c $currentClass" if DEBUG;
                     $candidates[$currentClass] = { active => $active,
                         demerits => $demerits,
                         ratio => $ratio
@@ -429,7 +432,7 @@ sub _mainloop {
                     previous => $c->{active}
                 );
                 if ($active) { 
-                    warn  "Before" if DEBUG;
+                    warn  "Before\n" if DEBUG;
                     my @newlist;
                     for (@{$self->{activeNodes}}) {
                         if ($_ == $active) { push @newlist, $newnode }
@@ -443,10 +446,10 @@ sub _mainloop {
                     # ];
                 }
                 else { 
-                    warn  "After" if DEBUG;
+                    warn  "After\n" if DEBUG;
                     push @{$self->{activeNodes}}, $newnode 
                 }
-                warn  @{$self->{activeNodes}} if DEBUG;
+                #warn  @{$self->{activeNodes}} if DEBUG;
             }
         }
     }
@@ -454,23 +457,27 @@ sub _mainloop {
 
 sub _computeCost {
     my ($self, $start, $end, $active, $currentLine, $nodes) = @_;
-    warn  "Computing cost from $start to $end" if DEBUG;
+    warn  "Computing cost from $start to $end\n" if DEBUG;
+    warn "Sum width: $self->{sum}{width}" if DEBUG;
+    warn "Total width: $active->{totals}{width}" if DEBUG;
     my $width = $self->{sum}{width} - $active->totals->{width};
     my $stretch = 0; my $shrink = 0;
     my $linelength = $currentLine < @{$self->linelengths} ? 
                         $self->{linelengths}[$currentLine-1] :
                         $self->{linelengths}[-1];
 
+    warn "Adding penalty width" if($nodes->[$end]->is_penalty) and DEBUG;
     $width += $nodes->[$end]->width if $nodes->[$end]->is_penalty;
+    warn "Width $width, linelength $linelength\n" if DEBUG;
     if ($width < $linelength) {
         $stretch = $self->{sum}{stretch} - $active->totals->{stretch};
-        #warn  "Stretch: $stretch" if DEBUG;
+        warn  "Stretch: $stretch" if DEBUG;
         if ($stretch > 0) {
             return ($linelength - $width) / $stretch;
         } else { return $self->infinity}
     } elsif ($width > $linelength) {
         $shrink = $self->{sum}{shrink} - $active->totals->{shrink};
-        #warn  "Shrink: $shrink" if DEBUG;
+        warn  "Shrink: $shrink" if DEBUG;
         if ($shrink > 0) {
             return ($linelength - $width) / $shrink;
         } else { return $self->infinity}
@@ -482,6 +489,7 @@ sub _computeSum {
     my $result = { width => $self->{sum}{width}, 
         stretch => $self->{sum}{stretch}, shrink => $self->{sum}{shrink} };
     for ($index..$#$nodes) {
+        warn "Checking $_\n";
         if ($nodes->[$_]->isa("Text::KnuthPlass::Glue")) {
             $result->{width} += $nodes->[$_]->width;
             $result->{stretch} += $nodes->[$_]->stretch;
@@ -524,6 +532,17 @@ sub breakpoints_to_lines {
     #}
     return @lines;
 }
+
+=head2 glueclass
+
+=head2 penaltyclass
+
+For subclassers.
+
+=cut
+
+sub glueclass    { "Text::KnuthPlass::Glue" }
+sub penaltyclass { "Text::KnuthPlass::Penalty" }
 
 =head1 AUTHOR
 

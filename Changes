@@ -1,4 +1,13 @@
+2011-02-11  Simon Cozens <simon@simon-cozens.org>
+
+  * Build, Build.PL, MANIFEST, lib/Text/KnuthPlass.pm, lib/Text/KnuthPlass.xs,
+  lib/Text/typemap, t/01-nodes.t, t/02-javascript.t, t/03-center.t: Add an XS
+  version, call it 0.04
+
 2011-02-09  Simon Cozens <simon@simon-cozens.org>
+
+  * Changes, lib/Text/KnuthPlass.pm: Oh, and "center" is (silently)
+  implemented, too. Save that for another time. This is 0.03
 
   * lib/Text/KnuthPlass.pm, t/01-nodes.t, t/02-javascript.t, t/03-center.t:
   Many, many corrections to the algorithm after studying the Javascript more.

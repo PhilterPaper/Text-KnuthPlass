@@ -10,7 +10,8 @@ WriteMakefile
           'PREREQ_PM' => {
                            'Test::More' => 0,
                            'Text::Hyphen' => 0,
-                           'Moose' => 0
+                           'Class::Accessor' => 0,
+                           'ExtUtils::CBuilder' => 0
                          }
         )
 ;
