@@ -4,8 +4,8 @@ use constant DEBUG => 0;
 use warnings;
 use strict;
 
-our $VERSION = '0.04';
-eval { XSLoader::load("Text::KnuthPlass", $VERSION); };
+our $VERSION = '1.00';
+eval { XSLoader::load("Text::KnuthPlass", $VERSION); } or die $@;
 # Or else there's a Perl version
 use Data::Dumper;
 
@@ -46,6 +46,7 @@ sub hyphenate { return $_[1] }
 
 package Text::KnuthPlass;
 use base 'Class::Accessor';
+use Carp qw/croak/;
 
 my %defaults = (
     infinity => 10000,
@@ -326,6 +327,9 @@ sub break {
             totals => { width => 0, stretch => 0, shrink => 0}
         )
     ];
+    if (!$self->{linelengths} or ref $self->{linelengths} ne "ARRAY") {
+        croak "No linelengths set";
+    }
 
     for (0..$#$nodes) { 
         my $node = $nodes->[$_];
