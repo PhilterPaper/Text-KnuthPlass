@@ -18,7 +18,7 @@ name: Text-KnuthPlass
 provides:
   Text::KnuthPlass:
     file: lib/Text/KnuthPlass.pm
-    version: 1.01
+    version: 1.02
   Text::KnuthPlass::Box:
     file: lib/Text/KnuthPlass.pm
   Text::KnuthPlass::Breakpoint:
@@ -31,4 +31,4 @@ provides:
     file: lib/Text/KnuthPlass.pm
   Text::KnuthPlass::Penalty:
     file: lib/Text/KnuthPlass.pm
-version: 1.01
+version: 1.02

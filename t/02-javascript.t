@@ -1,10 +1,12 @@
 #!perl 
 use strict;
 use warnings;
-use Test::More tests => 4;
-use JSON::Syck qw(Load);
+use Test::More;
 use Text::KnuthPlass;
 
+eval "use JSON::Syck qw(Load)";
+if ($@) {  plan skip_all => "Need JSON::Syck to load in node list"; }
+else {plan tests => 4; }
 
 # Check correctness of algorithm against Javascript
 my $nodes = Load(<<EOF);

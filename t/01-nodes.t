@@ -1,7 +1,6 @@
 #!perl
 use strict;
 use warnings;
-use feature ':5.10';
 use Test::More tests => 5;
 
 use_ok("Text::KnuthPlass");
@@ -13,16 +12,14 @@ my $t = Text::KnuthPlass->new(
 sub dump_nodelist {
     my $output; 
     for (@_) {
-        given($_) {
-            when ($_->isa("Text::KnuthPlass::Box")) { 
-                $output .= "[".$_->value."/".$_->width."]";
-            }
-            when ($_->isa("Text::KnuthPlass::Glue")) {
-                $output .= "<".$_->width."+".$_->stretch."-".$_->shrink.">";
-            }
-            when ($_->isa("Text::KnuthPlass::Penalty")) {
-                $output .= "(".$_->penalty.($_->flagged &&"!").")";
-            }
+        if ($_->isa("Text::KnuthPlass::Box")) { 
+            $output .= "[".$_->value."/".$_->width."]";
+        }
+        if ($_->isa("Text::KnuthPlass::Glue")) {
+            $output .= "<".$_->width."+".$_->stretch."-".$_->shrink.">";
+        }
+        if ($_->isa("Text::KnuthPlass::Penalty")) {
+            $output .= "(".$_->penalty.($_->flagged &&"!").")";
         }
     }
     return $output;

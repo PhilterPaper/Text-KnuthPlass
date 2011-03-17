@@ -1,5 +1,15 @@
 2011-03-17  Simon Cozens <simon@simon-cozens.org>
 
+  * lib/Text/KnuthPlass.pm: 1.02 release removes unnecessary dependencies.
+
+  * t/02-javascript.t: Remove dependency on JSON::Syck
+
+  * t/01-nodes.t: De-5.10.0-ify.
+
+  * lib/Text/KnuthPlass.pm: Oop.
+
+  * Changes: This is 1.01.
+
   * t/04-regression.t: Compare against Perl.
 
   * lib/Text/KnuthPlass.pm, lib/Text/KnuthPlass.xs: Another refactoring to
