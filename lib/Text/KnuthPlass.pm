@@ -4,7 +4,7 @@ use constant DEBUG => 0;
 use warnings;
 use strict;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 eval { XSLoader::load("Text::KnuthPlass", $VERSION); } or die $@;
 # Or else there's a Perl version
 use Data::Dumper;
@@ -315,10 +315,8 @@ This implements the main body of the algorithm; it turns a list of nodes
 
 =cut
 
-sub break {
-    my ($self, $nodes) = @_;
-    $self->{sum} = {width => 0, stretch => 0, shrink => 0 };
-    $self->{activeNodes} = [
+sub _init_nodelist { # Overridden by XS
+    shift->{activeNodes} = [
         Text::KnuthPlass::Breakpoint->new(position => 0,
             demerits => 0,
             ratio => 0,
@@ -327,6 +325,12 @@ sub break {
             totals => { width => 0, stretch => 0, shrink => 0}
         )
     ];
+}
+
+sub break {
+    my ($self, $nodes) = @_;
+    $self->{sum} = {width => 0, stretch => 0, shrink => 0 };
+    $self->_init_nodelist();
     if (!$self->{linelengths} or ref $self->{linelengths} ne "ARRAY") {
         croak "No linelengths set";
     }
@@ -347,10 +351,18 @@ sub break {
         }
     }
 
-    my $tmp = Text::KnuthPlass::Breakpoint->new(demerits => ~0);
-    return unless @{$self->{activeNodes}};
+    my @retval = reverse $self->_active_to_breaks;
+    $self->_cleanup;
+    return @retval;
+}
 
+sub _cleanup { } 
+
+sub _active_to_breaks { # Overridden by XS
+    my $self = shift;
+    return unless @{$self->{activeNodes}};
     my @breaks;
+    my $tmp = Text::KnuthPlass::Breakpoint->new(demerits => ~0);
     for (@{$self->{activeNodes}}) { $tmp = $_ if $_->demerits < $tmp->demerits }
     while ($tmp) {
         push @breaks, { position => $tmp->position,
@@ -358,7 +370,7 @@ sub break {
                       };
         $tmp = $tmp->previous
     }
-    return reverse @breaks;
+    return @breaks;
 }
 
 sub _mainloop {
@@ -411,7 +423,7 @@ sub _mainloop {
 
                 $demerits += $active->demerits;
                 if ($demerits < $candidates[$currentClass]->{demerits}) {
-                    warn "Setting c $currentClass" if DEBUG;
+                    warn "Setting c $currentClass\n" if DEBUG;
                     $candidates[$currentClass] = { active => $active,
                         demerits => $demerits,
                         ratio => $ratio
@@ -423,6 +435,7 @@ sub _mainloop {
             last if !$active or 
                 $active->line >= $currentLine;
         }
+        warn  "Post inner loop\n" if DEBUG;
         $tmpSum = $self->_computeSum($index, $nodes);
         for (0..3) { my $c = $candidates[$_];
             if ($c->{demerits} < ~0) { 
@@ -462,8 +475,8 @@ sub _mainloop {
 sub _computeCost {
     my ($self, $start, $end, $active, $currentLine, $nodes) = @_;
     warn  "Computing cost from $start to $end\n" if DEBUG;
-    warn "Sum width: $self->{sum}{width}" if DEBUG;
-    warn "Total width: $active->{totals}{width}" if DEBUG;
+    warn sprintf "Sum width: %f\n", $self->{sum}{width} if DEBUG;
+    warn sprintf "Total width: %f\n", $self->{totals}{width} if DEBUG;
     my $width = $self->{sum}{width} - $active->totals->{width};
     my $stretch = 0; my $shrink = 0;
     my $linelength = $currentLine < @{$self->linelengths} ? 
@@ -472,16 +485,16 @@ sub _computeCost {
 
     warn "Adding penalty width" if($nodes->[$end]->is_penalty) and DEBUG;
     $width += $nodes->[$end]->width if $nodes->[$end]->is_penalty;
-    warn "Width $width, linelength $linelength\n" if DEBUG;
+    warn sprintf "Width %f, linelength %f\n", $width, $linelength if DEBUG;
     if ($width < $linelength) {
         $stretch = $self->{sum}{stretch} - $active->totals->{stretch};
-        warn  "Stretch: $stretch" if DEBUG;
+        warn sprintf "Stretch %f\n", $stretch if DEBUG;
         if ($stretch > 0) {
             return ($linelength - $width) / $stretch;
         } else { return $self->infinity}
     } elsif ($width > $linelength) {
         $shrink = $self->{sum}{shrink} - $active->totals->{shrink};
-        warn  "Shrink: $shrink" if DEBUG;
+        warn sprintf "Shrink %f\n", $shrink if DEBUG;
         if ($shrink > 0) {
             return ($linelength - $width) / $shrink;
         } else { return $self->infinity}
@@ -493,7 +506,6 @@ sub _computeSum {
     my $result = { width => $self->{sum}{width}, 
         stretch => $self->{sum}{stretch}, shrink => $self->{sum}{shrink} };
     for ($index..$#$nodes) {
-        warn "Checking $_\n";
         if ($nodes->[$_]->isa("Text::KnuthPlass::Glue")) {
             $result->{width} += $nodes->[$_]->width;
             $result->{stretch} += $nodes->[$_]->stretch;
