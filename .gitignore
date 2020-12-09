@@ -1,0 +1,19 @@
+# ignore any PDFs except t test resources
+*.pdf
+!/t/resources/*.pdf
+!/examples/resources/*.pdf
+# ignore WinMerge and ViM backups
+*.bak
+*~
+# ignore ViM editor swap files
+*.swp
+# ignore leftover POD-to-HTML stuff
+pod2htmd.tmp
+# ignore .html documentation
+*.html
+# local build process
+/PDFbuild.pl
+/version
+/latest_release
+/Changes_new
+/comp.list
