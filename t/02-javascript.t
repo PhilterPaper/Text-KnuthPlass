@@ -4,8 +4,7 @@ use warnings;
 use Test::More;
 use Text::KnuthPlass;
 
-#eval { use JSON::Syck qw(Load) };
-eval " use JSON::Syck qw(Load) ";
+eval { use JSON::Syck qw(Load) };
 if ($@) {  plan skip_all => "Need JSON::Syck to load in node list"; }
 else {plan tests => 4; }
 

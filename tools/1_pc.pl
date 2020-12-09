@@ -67,7 +67,6 @@ my @ignore_list = (
      "Pragma \"constant\" used at", # will have to investigate why "use constant"
                                     # is flagged. TBD
      "Multiple \"package\" declarations", # might need to break up file
-     "Expression form of \"eval\"", # recommended { } works differently!
 
   # common level 3 warnings to ignore for now
      '"die" used instead of "croak"',  # 

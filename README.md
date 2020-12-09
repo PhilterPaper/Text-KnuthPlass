@@ -114,20 +114,20 @@ Find this file in `examples/KP.pl`. It assumes that Text::Hyphen is installed.
            print "$key:\n";
            my @content = @{ $value };
            foreach my $item ( @content ) {
-	     print "\n" if (ref($item) =~ m/::Box/);
-	     print ref($item)."\n";
-	     foreach my $subitem ( sort keys %$item ) {
+             print "\n" if (ref($item) =~ m/::Box/);
+             print ref($item)."\n";
+             foreach my $subitem ( sort keys %$item ) {
                print "$subitem = $item->{$subitem}\n";
-	       # box value = 'text fragment'
-	       #     width = width in Points
-	       # glue shrink = factor ~1
-	       #      stretch = facctor ~1
-	       #      width = width in Points (whitespace)
-	       # penalty flagged = 0 or 1
-	       #         penalty = value of penalty
-	       #         shrink = factor
-	       #         width = width in Points
-	     }
+               # box value = 'text fragment'
+               #     width = width in Points
+               # glue shrink = factor ~1
+               #      stretch = facctor ~1
+               #      width = width in Points (whitespace)
+               # penalty flagged = 0 or 1
+               #         penalty = value of penalty
+               #         shrink = factor
+               #         width = width in Points
+             }
            }
          } else {
            # not sure what position is (x position at raw end of line?)
@@ -158,15 +158,15 @@ Find this file in `examples/KP.pl`. It assumes that Text::Hyphen is installed.
         my $reduceGlue = 0;
         if ($line->{nodes}[-1]->is_penalty) {
             # hyphen added to end, so reduce glue width
-	    my $number_glues = 0;
-	    for my $node (@{$line->{nodes}}) {
-	        if ($node->isa("Text::KnuthPlass::Glue")) { $number_glues++; }
-	    }
-	    # TBD if no glues in this line, or if reduction amount makes glue
-	    # too close to 0 in width, have to do something else!
-	    if ($number_glues) {
-	        $reduceGlue = $widthHyphen / $number_glues;
-	    }
+            my $number_glues = 0;
+            for my $node (@{$line->{nodes}}) {
+                if ($node->isa("Text::KnuthPlass::Glue")) { $number_glues++; }
+            }
+            # TBD if no glues in this line, or if reduction amount makes glue
+            # too close to 0 in width, have to do something else!
+            if ($number_glues) {
+                $reduceGlue = $widthHyphen / $number_glues;
+            }
         }
 
         for my $node (@{$line->{nodes}})
@@ -176,7 +176,7 @@ Find this file in `examples/KP.pl`. It assumes that Text::Hyphen is installed.
                 $x += $node->width;
             } elsif ($node->isa("Text::KnuthPlass::Glue")) {
                 $x += ($node->width - $reduceGlue) + $line->{ratio} *
-	        (($raggedRight)? 1:
+                      (($raggedRight)? 1:
                     ($line->{ratio} < 0 ? $node->shrink : $node->stretch));
             }
         }
