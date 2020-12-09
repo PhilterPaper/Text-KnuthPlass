@@ -1,6 +1,6 @@
 # Text-KnuthPlass
 
-C<Text::KnuthPlass> is a Perl and XS (C) implementation of the well-known TeX
+'Text::KnuthPlass' is a Perl and XS (C) implementation of the well-known TeX
 paragraph-shaping (a.k.a. line-breaking) algorithm, as created by Donald E.
 Knuth and Michael F. Plass in 1981.
 
@@ -8,25 +8,25 @@ Given a long string containing the text of a paragraph, this module decides
 where to split a line (possibly hyphenating a word in the process), while
 attempting to:
 
- * maintain fairly consistent text "tightness"
- * minimize hyphenation overall
- * not have two or more hyphenated lines in a row
- * not have entire words "floating" over the next line
- * not hyphenate the penultimate line
+* maintain fairly consistent text "tightness"
+* minimize hyphenation overall
+* not have two or more hyphenated lines in a row
+* not have entire words "floating" over the next line
+* not hyphenate the penultimate line
 
 What it **doesn't** do:
 
- * attempt to avoid widows and orphans. This is the job of the calling routine, as C<Text::KnuthPlass> doesn't know how much of the paragraph fits on this page (or column) and how much has to be spilled to the next page or column.
- * attempt to avoid hyphenating the last word of the last line of a _split_ paragraph on a page or column (as before, it doesn't know where you're going to be splitting the paragraph between columns or pages).
+* attempt to avoid widows and orphans. This is the job of the calling routine, as 'Text::KnuthPlass' doesn't know how much of the paragraph fits on this page (or column) and how much has to be spilled to the next page or column.
+* attempt to avoid hyphenating the last word of the last line of a _split_ paragraph on a page or column (as before, it doesn't know where you're going to be splitting the paragraph between columns or pages).
 
 The Knuth-Plass algorithm does this by defining "boxes", "glue", and
-"penalties"for the paragraph text, and fiddling with line break points to
+"penalties" for the paragraph text, and fiddling with line break points to
 minimize the overall sum of penalties. This can result in the "breaking" of one
 or more of the listed rules, if it results in an overall better score ("better
 looking" layout).
 
-C<Text::KnuthPlass> handles word widths by either character count, or a user-
-supplied width function (such as based on the current font and font size). It 
+`Text::KnuthPlass` handles word widths by either character count, or a user-
+supplied width function (such as based on the current font and font size). It
 can also handle varying-length lines, if your column is not a perfect rectangle.
 
 ## Installation
@@ -54,9 +54,9 @@ Bug tracking is via
 
 (you will need a GitHub account to create or contribute to a discussion, but
 anyone can read tickets.) If you do not have a GitHub account, we can accept
-the occasional email (pmperry at cpan.org) or via
+the occasional email (pmperry at cpan.org) or via _Post without Account_ at
 
-    "https://www.catskilltech.com/forum/index.html" (_Post without Account_)
+    "https://www.catskilltech.com/forum/index.html"
 
 Please do not abuse these email-based support offerings. If you are going to
 be asking questions or making bug reports more than once in a blue moon,
@@ -64,7 +64,7 @@ please register at github.com -- it's free.
 
 ## An Example
 
-Find this file in C<examples/KP.pl>. It assumes that Text::Hyphen is installed.
+Find this file in `examples/KP.pl`. It assumes that Text::Hyphen is installed.
 
     # derived from Synopsis example in KnuthPlass.pm
     use strict;
@@ -213,7 +213,8 @@ Find this file in C<examples/KP.pl>. It assumes that Text::Hyphen is installed.
         "by the side of the cool fountain; and when she was bored she took a ".
         "golden ball, and threw it up on high and caught it; and this ball was ".
         "her favorite plaything.".
-        ""; }
+        "";
+      }
 
       if ($choice == 2) {
         # 2. a paragraph from page 16 of the Knuth-Plass article
@@ -228,8 +229,7 @@ Find this file in C<examples/KP.pl>. It assumes that Text::Hyphen is installed.
         "box of width zero and adding the actual symbol width to the glue that ".
         "follows. If no break occurs at this glue, the accumulated width is the ".
         "same as before; and if a break does occur, the line will be justified ".
-            "as if  the period  or other symbol were not  present.".
-            ""; }
-
-        }
-
+        "as if  the period  or other symbol were not  present.".
+        "";
+      }
+    }
