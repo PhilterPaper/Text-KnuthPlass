@@ -1,4 +1,4 @@
-Makefile.PL
+Build.PL
 Changes
 MANIFEST
 README.md
@@ -15,3 +15,4 @@ tools/1_pc.pl
 tools/2_t-tests.pl
 tools/3_examples.pl
 examples/KP.pl
+META.yml
