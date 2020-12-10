@@ -31,10 +31,10 @@ can also handle varying-length lines, if your column is not a perfect rectangle.
 
 ## Installation
 
-    perl Build.PL
-    ./Build
-    ./Build test
-    ./Build install
+    perl Makefile.PL
+    gmake
+    gmake test
+    gmake install
 
 ## Documentation
 
@@ -61,6 +61,12 @@ the occasional email (pmperry at cpan.org) or via _Post without Account_ at
 Please do not abuse these email-based support offerings. If you are going to
 be asking questions or making bug reports more than once in a blue moon,
 please register at github.com -- it's free.
+
+## License
+
+This product is licensed under the Perl license. You may redistribute under
+the GPL license, if desired, but you will have to add a copy of that license
+to your distribution, per its terms.
 
 ## An Example
 

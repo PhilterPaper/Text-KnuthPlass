@@ -1,4 +1,7 @@
-2020-12-09  UNRELEASED
+2020-12-09  1.03  (Phil M Perry)
+
+  Makefile.PL, Build.PL, MANIFEST
+   Change build process to use Makefile.PL instead of Build.PL
 
   t/02-javascript.t
    Fix failing t-tests due to use of long-double or quadmath libraries (more
@@ -21,7 +24,8 @@
     declarations" in KnuthPlass.pm, might in the future split up the file.
     Move pod and pod-coverage to "author testing only".
 
-  tools/1_pc.pl, tools/2_t-tests.pl, tools/3_examples.pl, MANIFEST
+  tools/1_pc.pl, tools/2_t-tests.pl, tools/3_examples.pl, MANIFEST,
+    examples/KP.pl
    Add some tools for testing and illustrating usage.
 
 2011-03-17  Simon Cozens <simon@simon-cozens.org>

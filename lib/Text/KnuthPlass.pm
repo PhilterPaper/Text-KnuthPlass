@@ -5,7 +5,7 @@ use warnings;
 use strict;
 
 our $VERSION = '1.03'; # VERSION
-my $LATEST_UPDATE = '1.03'; # manually update whenever file is edited
+my $LAST_UPDATE = '1.03'; # manually update whenever file is edited
 
 eval { XSLoader::load("Text::KnuthPlass", $VERSION); } or die $@;
 # Or else there's a Perl version
