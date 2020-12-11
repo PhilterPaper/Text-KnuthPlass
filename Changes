@@ -1,3 +1,13 @@
+2020-12-10  1.05  (Phil M Perry)  UNRELEASED
+
+  META.yml
+   Add repository (GitHub) and bugtracker (GitHub) entries. Want to cut over
+    to GitHub because RT ticket system is going away in March.
+
+  t/02-javascript.t
+   Got another floating point failure (long double or quadmath), so went 
+    ahead and rounded the rest of the floating point constants in that test.
+
 2020-12-10  1.04  (Phil M Perry)
 
   Makefile.PL removed, Build.PL, META.yml, MANIFEST, README.md
