@@ -1,4 +1,7 @@
-2020-12-10  1.05  (Phil M Perry)  UNRELEASED
+2020-12-18  1.05  (Phil M Perry)  UNRELEASED
+
+  README.md  remove example code (is still found in examples/KP.pl) to 
+    shorten this file to a reasonable length.
 
   META.yml
    Add repository (GitHub) and bugtracker (GitHub) entries. Want to cut over

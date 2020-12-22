@@ -138,6 +138,8 @@ $pdf->saveas("$outfile.pdf");
 sub getPara {
   my $choice = 2; # 1, 2,...
 
+  # original text for both used MS Smart Quotes for open and close single
+  # quotes. replaced by ASCII single quotes ' so will work anywhere.
   if ($choice == 1) {
     # 1. a paragraph from "The Frog King" (Grimms)
     return 
