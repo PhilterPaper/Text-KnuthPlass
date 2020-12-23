@@ -601,7 +601,7 @@ sub penaltyclass {
 
 originally written by Simon Cozens, C<< <simon at cpan.org> >>
 
-since 2020, maintained by Phil Perry C<< <pmperry at cpan.org> >>
+since 2020, maintained by Phil Perry
 
 =head1 ACKNOWLEDGEMENTS
 

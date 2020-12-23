@@ -54,7 +54,7 @@ Bug tracking is via
 
 (you will need a GitHub account to create or contribute to a discussion, but
 anyone can read tickets.) If you do not have a GitHub account, we can accept
-the occasional email (pmperry at cpan.org) or via _Post without Account_ at
+the occasional email via _Post without Account_ at
 
     "https://www.catskilltech.com/forum/index.html"
 
