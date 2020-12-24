@@ -53,14 +53,7 @@ Bug tracking is via
     "https://github.com/PhilterPaper/Text-KnuthPlass/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aopen"
 
 (you will need a GitHub account to create or contribute to a discussion, but
-anyone can read tickets.) If you do not have a GitHub account, we can accept
-the occasional email via _Post without Account_ at
-
-    "https://www.catskilltech.com/forum/index.html"
-
-Please do not abuse these email-based support offerings. If you are going to
-be asking questions or making bug reports more than once in a blue moon,
-please register at github.com -- it's free.
+anyone can read tickets.) The old RT ticket system is closed.
 
 ## License
 

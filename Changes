@@ -1,4 +1,7 @@
-2020-12-18  1.05  (Phil M Perry)  UNRELEASED
+2020-12-24  1.05  (Phil M Perry)  UNRELEASED
+
+  META.yml, README.md
+   Clean up support-related email addresses and pages.
 
   README.md  remove example code (is still found in examples/KP.pl) to 
     shorten this file to a reasonable length.

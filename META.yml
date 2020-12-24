@@ -35,5 +35,5 @@ provides:
 version: 1.04
 resources:
   bugtracker: https://github.com/PhilterPaper/Text-KnuthPlass/issues
-  homepage: https://www.catskilltech.com
+  homepage: https://metacpan.org/pod/Text::KnuthPlass
 
