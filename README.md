@@ -55,6 +55,12 @@ Bug tracking is via
 (you will need a GitHub account to create or contribute to a discussion, but
 anyone can read tickets.) The old RT ticket system is closed.
 
+Do NOT under ANY circumstances open a PR (Pull Request) to report a bug. It is
+a waste of both your and our time and effort. Open a regular ticket (issue),
+and attach a Perl (.pl) program illustrating the problem, if possible. If you
+believe that you have a program patch, and offer to share it as a PR, we may
+give the go-ahead. Unsolicited PRs may be closed without further action.
+
 ## License
 
 This product is licensed under the Perl license. You may redistribute under
