@@ -5,7 +5,7 @@ use warnings;
 use strict;
 
 our $VERSION = '1.04'; # VERSION
-my $LAST_UPDATE = '1.03'; # manually update whenever file is edited
+my $LAST_UPDATE = '1.05'; # manually update whenever file is edited
 
 eval { XSLoader::load("Text::KnuthPlass", $VERSION); } or die $@;
 # Or else there's a Perl version
@@ -605,13 +605,13 @@ since 2020, maintained by Phil Perry
 
 =head1 ACKNOWLEDGEMENTS
 
-This module is a Perl translation of Bram Stein's Javascript Knuth-Plass
-implementation. Any bugs, however, are probably my fault.
+This module is a Perl translation of Bram Stein's "Typeset" Javascript 
+Knuth-Plass implementation. Any bugs, however, are probably my fault.
 
 =head1 BUGS
 
 Please report any bugs or feature requests to the _issues_ section of 
-C<https://github.com/PhilterPaper/Text-KnuthPlass>. 
+C<https://github.com/PhilterPaper/Text-KnuthPlass>.
 
 Do NOT under ANY circumstances open a PR (Pull Request) to report a bug. It is 
 a waste of both your and our time and effort. Open a regular ticket (issue), 
