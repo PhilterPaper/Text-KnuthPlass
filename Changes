@@ -1,5 +1,8 @@
 2020-12-29  1.06  (Phil M Perry)  UNRELEASED
 
+  MANIFEST, kp.html, RoadMap, .gitignore
+   Ship documentation (POD) kp.html (also on GitHub). 
+    Roadmap/discussions/thoughts (RoadMap) in public on GitHub (Read-Only).
 
 2020-12-29  1.05  (Phil M Perry)
 

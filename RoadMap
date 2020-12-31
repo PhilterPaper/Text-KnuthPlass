@@ -1,0 +1,82 @@
+This file is not intended for update by the public. If you want to suggest
+something (bugs, improvements, enhancements, etc., or just comment on one
+of these items) please open an issue (ticket) on GitHub (with an appropriate
+label). What's here is meant to be reminders to myself.
+==========================================================================
+
+The latest Bram Stein Javascript implementation is
+https://github.com/bramstein/typeset/ and is May 2012, which is about a
+year after the last (original) Perl release (Text::KnuthPlass), March 2011. 
+It is possible that there are some updates to the JS version that should be 
+considered for adoption in the Perl version, and maybe some bug fixes. On
+the chance that some bugs below are fixed, perhaps studying "typeset" ought
+to be a high priority!
+
+
+Deal with various forms of hyphens and dashes in the original text, to not 
+get a - after them if break is made right after that character. Not sure if
+this is something in Text::KnuthPlass or better handled in the caller.
+ * ASCII hyphen U+002D  should always be an acceptable break point
+ * soft hyphen U+00AD  should always be an acceptable break point
+ * narrow hyphen U+2010 (preferred over ASCII hyphen)  
+     should always be an acceptable break point
+ * non-breaking hyphen U+2011 (like U+2010, but forbid break here)
+ * figdash U+2012
+ * en-dash U+2013
+ * em-dash U+2014   currently appears to NOT break here
+ * quotation-dash (horizontal bar) U+2015
+CD-ROM in Unicode book has line-breaking info, when you should and should NOT
+  break within a line (especially before/after certain characters),
+  also http://unicode.org/reports/tr14/tr14-12.html
+em-dash seems to refuse to split (see KP.pl choice 3), haven't tried others
+
+Are Non-breaking spaces handled correctly? NBSP, ZWNBSP, WJ,CGJ prohibit a
+break immediately before or after, while ZWSP permits a break, as does x20.
+Needs testing, if nothing else.
+
+East and Southeast Asian language line splitting is complicated, while Western
+languages usually can split on spaces and hyphens. Language-dependency?
+
+What to do if want to split a formatted paragraph in the middle (watching out 
+for widows and orphans), and the line ends hyphenated? Perhaps rerun KP with a 
+flag to forbid (or severely penalize) hyphenation on that line? Given the 
+space left in the column, should be able to tell routine the line number to 
+give a very high hyphenation penalty to, on the first run. Note that this 
+could increase the number of lines in the paragraph, but probably not decrease
+the line count.
+
+Widows and Orphans support? Currently, it's the job of the calling routine to
+count lines and decide to split the resulting paragraph, OR adjust leading on
+the whole page to squeeze in another line (widow prevention) or push orphan
+line to the next page (don't forget any heading(s) above the orphan line). If
+we're going to give a tentative max number of lines to KP anyway, to prevent
+hyphenation on the last line of the column, can anything further be done to
+deal with W&O? Also remember than due to font and/or font-size changes within
+the paragraph, line spacing (leading) may not be constant across the whole
+paragraph.
+
+Language support for languages where a letter needs to be doubled or replaced
+at the point of hyphenation. If this can happen BEFORE the break point, it 
+means that the left fragment length changes. Language also needs to be passed 
+to Text::Hyphen to use right dictionary.
+
+Need to measure sub-word fragment lengths after proposed split, in case of
+either a ligature being split (need to look up break points BEFORE ligatures
+substituted), or German/Dutch etc. letter doubled or replaced. Since ligatures
+should normally reduce word width only slightly, it may be acceptable to figure
+out break points BEFORE ligatures, and Shape the two word fragments separately.
+Something still needs to be done to go back and widen the line slightly if
+any ligatures substituted, to maintain flush right. In general, using H::S may
+neccesitate width adjustments anyway, as the returned glyph widths may not
+match the original Unicode characters. 
+
+What to do with the ugly situation where you are typsetting a bidi (RtL) 
+language (say, Hebrew), and embed some German text (LtR) with long words, and 
+one of those German words (possibly not the first one in the phrase) needs 
+splitting? Is the hyphen then somewhere in the middle of the line? Also need to
+be able to change Text::Hyphen dictionaries on the fly.
+
+"There are other options for fine-tuning the output. If you know your way 
+around TeX, dig into the source to find out what they are." OK, find and 
+document all the settings! Unless someone has already done this, it will likely
+have to wait until I have thoroughly studied KP, including the XS code.

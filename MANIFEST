@@ -2,6 +2,7 @@ Build.PL
 Changes
 MANIFEST
 README.md
+kp.html
 lib/Text/KnuthPlass.pm
 lib/Text/KnuthPlass.xs
 lib/Text/typemap
