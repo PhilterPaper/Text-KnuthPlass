@@ -1,6 +1,9 @@
-2020-12-29  1.06  (Phil M Perry)  UNRELEASED
+2021-01-01  1.06  (Phil M Perry)  UNRELEASED
 
-  MANIFEST, kp.html, RoadMap, .gitignore
+  README.md, INFO/kp.html, lib/Text/KnuthPlass.pm, MANIFEST
+   2021 copyright. NOT archiving Changes, yet. kp.html moved to INFO/.
+
+  MANIFEST, kp.html, RoadMap, .gitignore, lib/Text/KnuthPlass.pm
    Ship documentation (POD) kp.html (also on GitHub). 
     Roadmap/discussions/thoughts (RoadMap) in public on GitHub (Read-Only).
 

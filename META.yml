@@ -19,7 +19,7 @@ name: Text-KnuthPlass
 provides:
   Text::KnuthPlass:
     file: lib/Text/KnuthPlass.pm
-    version: 1.04
+    version: 1.05
   Text::KnuthPlass::Box:
     file: lib/Text/KnuthPlass.pm
   Text::KnuthPlass::Breakpoint:
@@ -32,7 +32,7 @@ provides:
     file: lib/Text/KnuthPlass.pm
   Text::KnuthPlass::Penalty:
     file: lib/Text/KnuthPlass.pm
-version: 1.04
+version: 1.05
 resources:
   bugtracker: https://github.com/PhilterPaper/Text-KnuthPlass/issues
   homepage: https://metacpan.org/pod/Text::KnuthPlass
