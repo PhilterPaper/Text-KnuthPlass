@@ -1,8 +1,8 @@
-2021-01-03  1.06  (Phil M Perry)  UNRELEASED
+2021-01-04  1.06  (Phil M Perry)  UNRELEASED
 
-  tools/pod2cpanhtml.pl, INFO/kp.html, MANIFEST
+  tools/pod2cpanhtml.pl, INFO/kp.html, MANIFEST, .github/workflows/test.yml
    Let's see if Continuous Integration is any happier with this HTML produced
-    by a more up-to-date tool.
+    by a more up-to-date tool. No, but try excluding kp.html from lint.
 
   README.md, INFO/kp.html, lib/Text/KnuthPlass.pm, MANIFEST
    2021 copyright. NOT archiving Changes, yet. kp.html moved to INFO/.
