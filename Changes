@@ -1,4 +1,11 @@
-2021-01-04  1.06  (Phil M Perry)  UNRELEASED
+2021-01-20  1.06  (Phil M Perry)  UNRELEASED
+
+* lib/Text/KnuthPlass.pm, lib/Text/KnuthPlass.xs
+*  Fix end-of-array index bug in handling the common case of more lines of
+*   text in a paragraph than "linelengths" array members.
+
+  Build.PL
+   Add resources for repository and bugtracker (point to GitHub).
 
   tools/pod2cpanhtml.pl, INFO/kp.html, MANIFEST, .github/workflows/test.yml
    Let's see if Continuous Integration is any happier with this HTML produced
