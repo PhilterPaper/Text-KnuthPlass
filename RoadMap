@@ -41,9 +41,9 @@ What to do if want to split a formatted paragraph in the middle (watching out
 for widows and orphans), and the line ends hyphenated? Perhaps rerun KP with a 
 flag to forbid (or severely penalize) hyphenation on that line? Given the 
 space left in the column, should be able to tell routine the line number to 
-give a very high hyphenation penalty to, on the first run. Note that this 
-could increase the number of lines in the paragraph, but probably not decrease
-the line count.
+give a very high hyphenation penalty to, on the first (only) run. Note that 
+this could increase the number of lines in the paragraph, but probably not 
+decrease the line count.
 
 Widows and Orphans support? Currently, it's the job of the calling routine to
 count lines and decide to split the resulting paragraph, OR adjust leading on
@@ -80,3 +80,14 @@ be able to change Text::Hyphen dictionaries on the fly.
 around TeX, dig into the source to find out what they are." OK, find and 
 document all the settings! Unless someone has already done this, it will likely
 have to wait until I have thoroughly studied KP, including the XS code.
+
+Per bramstein/typeset#30, it would be very good, if an otherwise unbreakable
+word (or fragment) is longer than the entire available line, to break it at
+some arbitrary point so that it does fit. First try condensing the text with
+charspace() and/or hscale(), by a reasonable amount. If that isn't enough to
+fit it, try breaking at "reasonable" points, such as between a lowercase and
+an uppercase letter (camelCase text) or a letter and a number, or next to
+some punctuation. Finally, break where it would just fit into the line. To
+avoid repetative steps, it might be best to just go ahead and split any
+remaining fragments into something like 4 or 5 letter fragments, in the
+hyphenation step, and use the normal box and glue fitting method.

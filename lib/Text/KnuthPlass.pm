@@ -4,7 +4,7 @@ use constant DEBUG => 0;
 use warnings;
 use strict;
 
-our $VERSION = '1.05'; # VERSION
+our $VERSION = '1.06'; # VERSION
 my $LAST_UPDATE = '1.06'; # manually update whenever file is edited
 
 eval { XSLoader::load("Text::KnuthPlass", $VERSION); } or die $@;
@@ -516,7 +516,7 @@ sub _computeCost {
     warn sprintf "Total width: %f\n", $self->{totals}{width} if DEBUG;
     my $width = $self->{sum}{width} - $active->totals->{width};
     my $stretch = 0; my $shrink = 0;
-    my $linelength = $currentLine < @{$self->linelengths} ? 
+    my $linelength = $currentLine <= @{$self->linelengths} ? 
                         $self->{linelengths}[$currentLine-1] :
                         $self->{linelengths}[-1];
 
@@ -627,7 +627,7 @@ give the go-ahead. Unsolicited PRs may be closed without further action.
 
 Copyright (c) 2011 Simon Cozens.
 
-Copyright (c) 2020 Phil M Perry.
+Copyright (c) 2020-2021 Phil M Perry.
 
 This program is released under the following license: Perl, GPL
 
