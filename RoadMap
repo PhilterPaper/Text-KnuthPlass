@@ -18,8 +18,8 @@ get a - after them if break is made right after that character. Not sure if
 this is something in Text::KnuthPlass or better handled in the caller.
  * ASCII hyphen U+002D  should always be an acceptable break point
  * soft hyphen U+00AD  should always be an acceptable break point
- * narrow hyphen U+2010 (preferred over ASCII hyphen)  
-     should always be an acceptable break point
+ * narrow hyphen U+2010 (preferred over ASCII hyphen, but need to check if it's
+     in the particular font in use). should always be an acceptable break point
  * non-breaking hyphen U+2011 (like U+2010, but forbid break here)
  * figdash U+2012
  * en-dash U+2013
@@ -29,6 +29,7 @@ CD-ROM in Unicode book has line-breaking info, when you should and should NOT
   break within a line (especially before/after certain characters),
   also http://unicode.org/reports/tr14/tr14-12.html
 em-dash seems to refuse to split (see KP.pl choice 3), haven't tried others
+PDF::Builder::UniWrap may be useful in determining can/can't/may split points
 
 Are Non-breaking spaces handled correctly? NBSP, ZWNBSP, WJ,CGJ prohibit a
 break immediately before or after, while ZWSP permits a break, as does x20.

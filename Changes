@@ -1,4 +1,25 @@
+2022-01-09  1.07  (Phil M Perry)   UNRELEASED
+
+  tools/*.pl, lib/Text/KnuthPlass.pm
+   Change "my $LAST_UPDATE" to "our $LAST_UPDATE" so info available to a
+    program.
+
+  README.md, lib/Text/KnuthPlass.pm
+   2022 copyright
+
+  lib/Text/KnuthPlass.xs 
+   Fix compiler warnings (#8).
+
+  In examples, change lead() to leading() per PDF::API2 and PDF::Builder.
+
+  Update build process to ensure that all human-readable files are "unix"
+   format and not MS-DOS (CRLF) format on line-ends. Some non-CPAN packagers
+   are complaining about the mixed line-end formats.
+
 2021-02-12  1.06  (Phil M Perry)
+
+  lib/Text/KnuthPlass.pm, lib/Text/KnuthPlass.xs
+   Minor fix to properly index line length list on longer paragraphs.
 
   Build.PL
    Add resources for repository and bugtracker (point to GitHub).

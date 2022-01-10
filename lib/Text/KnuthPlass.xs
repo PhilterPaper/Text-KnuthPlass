@@ -150,7 +150,8 @@ _init_nodelist(self)
     activelist->head = activelist->tail = _new_breakpoint();
     activelist->list_size = 1;
     activelist->to_free = newAV();
-    hv_stores((HV*)self, "activeNodes", ((IV)activelist));
+ /* hv_stores((HV*)self, "activeNodes", ((IV)activelist)); */
+    hv_stores((HV*)self, "activeNodes", ((SV *)activelist));
 
 void _active_to_breaks(self)
     Text_KnuthPlass self

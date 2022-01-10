@@ -1,8 +1,9 @@
 #!/usr/bin/Perl
 # derived from Synopsis example in KnuthPlass.pm
-# REQUIRES PDF::Builder and Text::Hyphen
+# REQUIRES PDF::Builder and Text::Hyphen (builds PDF output)
 # TBD: command-line selection of line width, which text to format, perhaps
 #      choice of font and font size
+#      non-PDF (e.g., .txt, output versions)
 use strict;
 use warnings;
 use PDF::Builder;
@@ -30,7 +31,7 @@ my $split_hyphen = '-';  # TBD check if U+2010 narrow hyphen is available
                          # once font is selected
 
 $text->font($font, $font_size);
-$text->lead($font_size * $leading);
+$text->leading($font_size * $leading);
 
 my $indent = $indentAmount * $text->advancewidth('M');
 my $widthHyphen = $text->advancewidth($split_hyphen);
@@ -143,7 +144,7 @@ for my $line (@lines) {
     if ($useSplitHyphen) {
 	$text->text($split_hyphen); 
     }
-    $y -= $text->lead();  # next line down
+    $y -= $text->leading();  # next line down
 }
 # --------------------------
 print "\nThere are ".scalar(@lines)." lines to output, occupying ";

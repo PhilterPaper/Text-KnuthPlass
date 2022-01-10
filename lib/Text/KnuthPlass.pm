@@ -5,7 +5,7 @@ use warnings;
 use strict;
 
 our $VERSION = '1.06'; # VERSION
-my $LAST_UPDATE = '1.06'; # manually update whenever file is edited
+our $LAST_UPDATE = '1.07'; # manually update whenever file is edited
 
 eval { XSLoader::load("Text::KnuthPlass", $VERSION); } or die $@;
 # Or else there's a Perl version
@@ -627,7 +627,7 @@ give the go-ahead. Unsolicited PRs may be closed without further action.
 
 Copyright (c) 2011 Simon Cozens.
 
-Copyright (c) 2020-2021 Phil M Perry.
+Copyright (c) 2020-2022 Phil M Perry.
 
 This program is released under the following license: Perl, GPL
 
