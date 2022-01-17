@@ -1,21 +1,29 @@
 This file is not intended for update by the public. If you want to suggest
 something (bugs, improvements, enhancements, etc., or just comment on one
 of these items) please open an issue (ticket) on GitHub (with an appropriate
-label). What's here is meant to be reminders to myself.
+label). What's here is meant to be reminders to myself, but if it gives you a
+hankering to design/code and contribute some improvements (please check first!),
+that's good.
 ==========================================================================
 
 The latest Bram Stein Javascript implementation is
-https://github.com/bramstein/typeset/ and is May 2012, which is about a
-year after the last (original) Perl release (Text::KnuthPlass), March 2011. 
-It is possible that there are some updates to the JS version that should be 
-considered for adoption in the Perl version, and maybe some bug fixes. On
-the chance that some bugs below are fixed, perhaps studying "typeset" ought
-to be a high priority!
+https://github.com/bramstein/typeset/ and is May 2012 (plus some later minor
+updates through April 2016), which is about a year after the last (original) 
+Perl release (Text::KnuthPlass), March 2011.  It is possible that there are 
+some updates to the JS version that should be considered for adoption in the 
+Perl version, and maybe some bug fixes. On the chance that some bugs below are 
+fixed, perhaps studying "typeset" ought to be a high priority!
+
+Keep in mind that this module will be used for other than PDF generation, so
+don't hard-code in anything that requires PDF facilities, or forces lengths to 
+be in (Big) points. Non-PDF examples should be given (probably fixed-pitch 
+text). Don't depend on charspace() and wordspace() or other PDF items.
 
 
 Deal with various forms of hyphens and dashes in the original text, to not 
 get a - after them if break is made right after that character. Not sure if
 this is something in Text::KnuthPlass or better handled in the caller.
+
  * ASCII hyphen U+002D  should always be an acceptable break point
  * soft hyphen U+00AD  should always be an acceptable break point
  * narrow hyphen U+2010 (preferred over ASCII hyphen, but need to check if it's
@@ -25,18 +33,21 @@ this is something in Text::KnuthPlass or better handled in the caller.
  * en-dash U+2013
  * em-dash U+2014   currently appears to NOT break here
  * quotation-dash (horizontal bar) U+2015
+
 CD-ROM in Unicode book has line-breaking info, when you should and should NOT
   break within a line (especially before/after certain characters),
   also http://unicode.org/reports/tr14/tr14-12.html
 em-dash seems to refuse to split (see KP.pl choice 3), haven't tried others
-PDF::Builder::UniWrap may be useful in determining can/can't/may split points
+PDF::Builder::UniWrap may be useful in determining can/can't/may split points,
+  although it appears to be possibly quite out of date
 
 Are Non-breaking spaces handled correctly? NBSP, ZWNBSP, WJ,CGJ prohibit a
 break immediately before or after, while ZWSP permits a break, as does x20.
-Needs testing, if nothing else.
+Needs testing, if nothing else. Knuth-Plass 1982 paper discusses such things
+extensively.
 
 East and Southeast Asian language line splitting is complicated, while Western
-languages usually can split on spaces and hyphens. Language-dependency?
+languages usually can split on spaces and hyphens/dashes. Language-dependency?
 
 What to do if want to split a formatted paragraph in the middle (watching out 
 for widows and orphans), and the line ends hyphenated? Perhaps rerun KP with a 
@@ -56,21 +67,6 @@ deal with W&O? Also remember than due to font and/or font-size changes within
 the paragraph, line spacing (leading) may not be constant across the whole
 paragraph.
 
-Language support for languages where a letter needs to be doubled or replaced
-at the point of hyphenation. If this can happen BEFORE the break point, it 
-means that the left fragment length changes. Language also needs to be passed 
-to Text::Hyphen to use right dictionary.
-
-Need to measure sub-word fragment lengths after proposed split, in case of
-either a ligature being split (need to look up break points BEFORE ligatures
-substituted), or German/Dutch etc. letter doubled or replaced. Since ligatures
-should normally reduce word width only slightly, it may be acceptable to figure
-out break points BEFORE ligatures, and Shape the two word fragments separately.
-Something still needs to be done to go back and widen the line slightly if
-any ligatures substituted, to maintain flush right. In general, using H::S may
-neccesitate width adjustments anyway, as the returned glyph widths may not
-match the original Unicode characters. 
-
 What to do with the ugly situation where you are typsetting a bidi (RtL) 
 language (say, Hebrew), and embed some German text (LtR) with long words, and 
 one of those German words (possibly not the first one in the phrase) needs 
@@ -80,15 +76,80 @@ be able to change Text::Hyphen dictionaries on the fly.
 "There are other options for fine-tuning the output. If you know your way 
 around TeX, dig into the source to find out what they are." OK, find and 
 document all the settings! Unless someone has already done this, it will likely
-have to wait until I have thoroughly studied KP, including the XS code.
+have to wait until I have thoroughly studied KP, including the XS code. The
+1982 KP article has some suggestions.
 
-Per bramstein/typeset#30, it would be very good, if an otherwise unbreakable
-word (or fragment) is longer than the entire available line, to break it at
-some arbitrary point so that it does fit. First try condensing the text with
-charspace() and/or hscale(), by a reasonable amount. If that isn't enough to
-fit it, try breaking at "reasonable" points, such as between a lowercase and
-an uppercase letter (camelCase text) or a letter and a number, or next to
-some punctuation. Finally, break where it would just fit into the line. To
-avoid repetative steps, it might be best to just go ahead and split any
-remaining fragments into something like 4 or 5 letter fragments, in the
-hyphenation step, and use the normal box and glue fitting method.
+A general means is needed to set parameters, such as 
+
+ * slight differences between ragged-right and flush justified 
+ * need an indent amount (global) and then per-paragraph override of indent 
+   amount and number of lines, such as to accommodate dropped caps. Also to
+   suppress indent after a heading
+ * where to allow splits around hard-coded hyphens and dashes (some styles
+   permit break _before_ the dash)
+ * manual setting of discretionary/auxiliary spaces (try hard to suppress line 
+   break, but not absolutely forbid) such as (TeX-style) with Dr.&Smith
+ * adjust handling of glue (space) after punctuation
+ * allow punctuation "hanging over" past the right margin (or left margin for
+   RTL languages?)
+
+A more general means of describing a column than an array of line lengths 
+(define the outline of the paragraph built with a simple path of lines, arcs, 
+and splines). Report back the position within unused column space (to avoid an
+orphan), or the leftover text that didn't fit within the column. If it appears 
+that just one line is left to go (a widow), rerun, adjusting the leading, to 
+squeeze in that line. If only room for one line (orphan), rerun, adjusting the 
+leading. Watch out when changing leading (over entire page?) that it doesn't
+create new widows and orphans, or heal one (leaving an empty line). Also watch
+out for interaction with images, floats, inserts, etc. when changing leading, 
+but if the column outline is in fixed coordinates (already allowing for floats)
+hopefully there will be no collisions. A list of lines (with font information)
+would be returned, along with information of x and y coordinates where they
+would be printed. KP itself never puts ink on paper.
+
+A more general means of embedding KP "commands" in the text, to override 
+current settings. Besides discretionary/auxiliary spaces, these could include 
+suggested break points in words (like &SHY;), mandatory break points, forbidden 
+break points, etc.
+
+Support for changes in font and font size, etc., language (for hyphenation
+purposes), forbid/suggest ligatures. This might be embedded KP commands in the
+text stream (marked by non-printable control bytes before and after?), or 
+chunks of text within an array of hashes. Note that leading will need to be 
+adjusted on the fly, according to font size changes, so with non-rectangular 
+column layouts line lengths will change. Support HarfBuzz::Shaper usage before 
+or after KP (probably after).
+
+Separate out PDF-based examples under examples/ as examples/PDF/. Add some 
+non-PDF examples in the future.
+
+Word Splitting (Hyphenation points) improvements. Some of these may be best
+handled by an improved hyphenation support (built on Tex::Hyphen or 
+Text::Hyphen) but still need to support such legacy hyphenation modules.
+
+ * Invoking a default hyphenation library (human language), and being able to 
+   switch to another on the fly for a foreign word or phrase.
+ * Per bramstein/typeset#30, it would be very good, if an otherwise unbreakable
+   word (or fragment) is longer than the entire available line, to break it at 
+   some arbitrary point so that it does fit. First try condensing the text with 
+   charspace() and/or hscale(), by a reasonable amount. If that isn't enough to 
+   fit it, try breaking at "reasonable" points, such as between a lowercase and 
+   an uppercase letter (camelCase text) or a letter and a number, or next to 
+   some punctuation. Finally, break where it would just fit into the line. To 
+   avoid repetative steps, it might be best to just go ahead and split any 
+   remaining fragments into something like 4 or 5 letter fragments, in the 
+   hyphenation step, and use the normal box and glue fitting method.
+ * Language support for languages where a letter needs to be doubled or 
+   replaced at the point of hyphenation. If this can happen BEFORE the break 
+   point, it means that the left fragment length changes. Language also needs 
+   to be passed to Text::Hyphen (or equivalent) to use right dictionary.
+ * Need to measure sub-word fragment lengths after proposed split, in case of 
+   either a ligature being split (need to look up break points BEFORE ligatures
+   substituted), or German/Dutch etc. letter doubled or replaced. Since 
+   ligatures should normally reduce word width only slightly, it may be 
+   acceptable to figure out break points BEFORE ligatures, and Shape the two 
+   word fragments separately.  Something still needs to be done to go back and 
+   widen the line slightly if any ligatures substituted, to maintain flush 
+   right. In general, using H::S may neccesitate width adjustments anyway, as 
+   the returned glyph widths may not match the original Unicode characters. 
+
