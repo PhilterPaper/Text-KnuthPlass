@@ -61,9 +61,6 @@ and attach a Perl (.pl) program illustrating the problem, if possible. If you
 believe that you have a program patch, and offer to share it as a PR, we may
 give the go-ahead. Unsolicited PRs may be closed without further action.
 
-Discussion of a more general nature, not related to a specific bug or feature
-(enhancement) request, may be made in "https://www.catskilltech.com/forum/general-12/textknuthplass-general-discussion/"
-
 ## License
 
 This product is licensed under the Perl license. You may redistribute under
@@ -72,6 +69,28 @@ to your distribution, per its terms.
 
 (c)copyright 2020-2022 by Phil M Perry
 earlier copyrights held by Simon Cozens
+
+## History
+
+Around 2009, Bram Stein wrote a Javascript implementation of the Knuth-Plass 
+paragraph fitting algorithm named `typeset` (not to be confused with the 
+language `typescript`, nor the publishing system `Typeset`). It may be found
+on GitHub in `bramstein/typeset`, and does not appear to be maintained (last 
+update 2017). In 2011, Simon Cozens ported `typeset` to Perl, and called it 
+`Text::KnuthPlass`, maintaining it for only a short time. In 2020, Phil Perry 
+took over maintenance of this package.
+
+There are a number of known bugs in Text::KnuthPlass, and the first priority
+is to study post-2011 changes to `typeset` and see if they resolve the
+problems. There is also a refactored (still Javascript) version of 
+`typeset`, intended for use as a library, in `frobnitzem/typeset`, which 
+should be looked at, as it was maintained through 2017. Finally, there are a 
+number of Knuth-Plass implementations in other languages, such as Python 
+(`akuchling/texlib`) and typescript (`avery-laird/breaker`) that should be
+studied. And of course, there is the original Knuth-Plass paper and the
+annotated listing in _TeX: The Program_. It's just a matter of finding the 
+time to go through all these sources and fix up `Text::KnuthPlass`, and then 
+extend it in various ways.
 
 ## An Example
 
