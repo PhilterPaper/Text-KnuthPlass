@@ -80,6 +80,11 @@ update 2017). In 2011, Simon Cozens ported `typeset` to Perl, and called it
 `Text::KnuthPlass`, maintaining it for only a short time. In 2020, Phil Perry 
 took over maintenance of this package.
 
+There are many copies of the Knuth-Plass paper/thesis, as well as discussions
+and explanations of the algorithm, floating around on the Web, so I will leave
+it to you to find some examples. Just the keywords _Knuth_ and _Plass_ should
+get you there.
+
 There are a number of known bugs in Text::KnuthPlass, and the first priority
 is to study post-2011 changes to `typeset` and see if they resolve the
 problems. There is also a refactored (still Javascript) version of 
@@ -94,8 +99,8 @@ extend it in various ways.
 
 ## An Example
 
-Find an example of using Text::KnuthPlass in `examples/KP.pl`. It assumes that
-Text::Hyphen and PDF::Builder are installed. You can easily substitute
+Find an example of using Text::KnuthPlass in `examples/PDF/KP.pl`. It assumes 
+that Text::Hyphen and PDF::Builder are installed. You can easily substitute
 PDF::API2 and change the PDF::Builder references in the code. You have a choice
 of three text selections to format, and can change many settings, such as the
 font, font size, indentation amount, leading, line length (in Points), and

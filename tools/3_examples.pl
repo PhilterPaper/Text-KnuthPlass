@@ -1,14 +1,17 @@
 #!/usr/bin/perl
 # run examples test suite
-# roughly equivalent to examples.bat
-#   you will need to update the %args list before running
 # author: Phil M Perry
+#
+# TBD: glue together line fragments into one line and set wordspace() if PDF
 
 use strict;
 use warnings;
 
 # VERSION
 our $LAST_UPDATE = '1.07'; # manually update whenever code is changed
+
+# TBD command line switch to set test_type
+my $test_type = 'PDF';  # all tests in a subdirectory of examples/
 
 # dependent on optional packages:
 my $TH_installed = 1; # Text::Hyphen IS installed and you want to use it.
@@ -21,8 +24,9 @@ my $pause;
 
 my (@example_list, @example_results);
 
- if ($TH_installed) {
-  push @example_list, "KP.pl";
+ if ($TH_installed && $test_type eq 'PDF') {
+  push @example_list, "$test_type/KP.pl";
+  # output location when run tools/3_examples.pl
   push @example_results, "create examples/KP.pdf, showing paragraph text formatted into a block of arbitrary-length lines.";
  }
 
@@ -31,12 +35,14 @@ my (@example_list, @example_results);
 my %args;
 # if you do not define a file for a test (leave it EMPTY ''), it will be skipped
 # if any spaces in a path, make sure double quoted or use escapes
+# must match the basename used in @example_list
 #
 # KP needs ???? command line arguments
-# $args{'KP'} = "whatever";
+# $args{'PDF/KP'} = "whatever";
 
 my $type;
 # one command line arg allowed (-cont is default)
+# TBD allow override of test_type on the command line (default PDF)
 if      (scalar @ARGV == 0) {
     $type = '-cont';
 } elsif (scalar @ARGV == 1) {
@@ -56,7 +62,7 @@ if      (scalar @ARGV == 0) {
 $pause = '';
 # some warnings:
 foreach my $test (@example_list) {
-    if ($test eq '023_cjkfonts') {
+    if ($test eq 'PDF/023_cjkfonts') {  ##### not an active example
         print "$test: to display the resulting PDFs, you may need to install\n";
         print "  East Asian fonts for your PDF reader.\n";
         $pause = ' ';

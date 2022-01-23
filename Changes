@@ -1,4 +1,9 @@
-2022-01-09  1.07  (Phil M Perry)   UNRELEASED
+2022-01-23  1.07  (Phil M Perry)   UNRELEASED
+
+  examples/PDF/KP.pl, examples/resources/, tools/3_examples.pl, MANIFEST,
+    README.md
+   Move PDF examples to own subdirectory, leaving room in examples/ for
+    other language examples (such as plain text). Common resources directory.
 
   tools/*.pl, lib/Text/KnuthPlass.pm
    Change "my $LAST_UPDATE" to "our $LAST_UPDATE" so info available to a

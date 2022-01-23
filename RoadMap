@@ -150,6 +150,6 @@ Text::Hyphen) but still need to support such legacy hyphenation modules.
    acceptable to figure out break points BEFORE ligatures, and Shape the two 
    word fragments separately.  Something still needs to be done to go back and 
    widen the line slightly if any ligatures substituted, to maintain flush 
-   right. In general, using H::S may neccesitate width adjustments anyway, as 
+   right. In general, using H::S may necessitate width adjustments anyway, as 
    the returned glyph widths may not match the original Unicode characters. 
 
