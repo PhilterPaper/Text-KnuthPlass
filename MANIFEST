@@ -6,6 +6,7 @@ INFO/kp.html
 lib/Text/KnuthPlass.pm
 lib/Text/KnuthPlass.xs
 lib/Text/typemap
+LICENSE
 ppport.h
 t/00-load.t
 t/01-nodes.t

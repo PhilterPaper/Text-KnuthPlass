@@ -1,4 +1,8 @@
-2022-01-23  1.07  (Phil M Perry)   UNRELEASED
+2022-04-03  1.07  (Phil M Perry)   UNRELEASED
+
+  LICENSE, MANIFEST  add separate LICENSE file
+
+  META.yml  add minimum Perl version (5.8.1)
 
   examples/PDF/KP.pl, examples/resources/, tools/3_examples.pl, MANIFEST,
     README.md
