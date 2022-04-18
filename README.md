@@ -80,6 +80,10 @@ update 2017). In 2011, Simon Cozens ported `typeset` to Perl, and called it
 `Text::KnuthPlass`, maintaining it for only a short time. In 2020, Phil Perry 
 took over maintenance of this package.
 
+**Note**:  gitpan/Text-KnuthPlass (on GitHub) appears to be a Read-Only
+archive of Text::KnuthPlass from before Perry took over maintenance. It is 
+older, and thus not very useful.
+
 There are many copies of the Knuth-Plass paper/thesis, as well as discussions
 and explanations of the algorithm, floating around on the Web, so I will leave
 it to you to find some examples. Just the keywords _Knuth_ and _Plass_ should
