@@ -9,7 +9,17 @@ use warnings;
 use PDF::Builder;
 use Text::KnuthPlass;
 
+my $raggedRight = 0; # 0 = flush right, 1 = ragged right
+my $lineWidth = 300; # Points
+my $font_size = 12;  # be careful not to overlap three sample texts!
+my $leading = 1.125; # leading will be 9/8 of the font size
+my $indentAmount = 2; # ems to indent first line of paragraph. - outdents
+# upper left corner of paragraph
+my @ytops = (725, 525, 300);
+my $xleft = 50;
 my $outfile = 'KP';
+
+my ($textChoice, $paragraph, @lines, $x, $y, $ytop, $indent, $vertical_size);
 my $pdf = PDF::Builder->new(-compress => 'none');
 my $page = $pdf->page();
 my $grfx = $page->gfx();
@@ -18,36 +28,28 @@ my $font = $pdf->ttfont("/Windows/Fonts/arial.ttf");
 #my $font = $pdf->ttfont("/Windows/Fonts/times.ttf");
 #my $font = $pdf->corefont("Helvetica-Bold");
 
-my $textChoice = 1;  # see getPara() at bottom, for choices of sample text
-my $raggedRight = 0; # 0 = flush right, 1 = ragged right
-my $lineWidth = 300; # Points
-my $indentAmount = 2; # ems to indent first line of paragraph. - outdents
-# upper left corner of paragraph
-my $ytop = 500;
-my $xleft = 50;
-my $font_size = 12;
-my $leading = 1.125; # leading will be 9/8 of the font size
-my $split_hyphen = '-';  # TBD check if U+2010 narrow hyphen is available
-                         # once font is selected
-
 $text->font($font, $font_size);
 $text->leading($font_size * $leading);
 
-my $indent = $indentAmount * $text->advancewidth('M');
+my $split_hyphen = '-';  # TBD check if U+2010 narrow hyphen is available
+                         # once font is selected
 my $widthHyphen = $text->advancewidth($split_hyphen);
-my $paragraph = getPara($textChoice);
+$indent = $indentAmount * $text->advancewidth('M');
 
 # create Knuth-Plass object, build line set with it
 my $t = Text::KnuthPlass->new(
     measure => sub { $text->advancewidth(shift) }, 
     linelengths => [$lineWidth-$indent, $lineWidth]  # indented, non-indented
       # could also handle non-rectangular paragraphs, such as with asides,
-      # inserts, images, etc. space cut out of paragraph
+      # inserts, images, etc. space cut out of paragraph.
+      # AT THIS POINT ONLY TWO VALUES SUPPORTED!
 );
 
-my @lines = $t->typeset($paragraph);
+for ($textChoice=1; $textChoice<=scalar(@ytops); $textChoice++) {
+ $paragraph = getPara($textChoice);
+ @lines = $t->typeset($paragraph);
 # --------------
-# dump @lines
+# dump @lines (diagnostics)
  foreach (@lines) { 
    # $_ is a hashref
    print "========== new line ==============\n";
@@ -81,11 +83,13 @@ my @lines = $t->typeset($paragraph);
  }
 # --------------
 
-# output @lines to PDF, starting at $xleft, $ytop
-my $x;
-my $y = $ytop;
+ # output @lines to PDF, starting at $xleft, $ytop
+ $y = $ytop = $ytops[$textChoice-1];
+ $indent = $indentAmount * $text->advancewidth('M');
 
-for my $line (@lines) {
+ for my $line (@lines) {
+    # NOTE that a cleaner way to indent is to prepend a 2em or so space
+    #      box (not glue) to the front of the string.
     $x = $xleft + $indent; 
     print "========== new line @ $x,$y ==============\n";
     $indent = 0;
@@ -129,11 +133,14 @@ for my $line (@lines) {
     # each node is a box (text) or glue (variable-width space)...ignore penalty
     # output each text and space node in the line
     for my $node (@{$line->{'nodes'}}) {
+if (!defined $node) {print "undefined node at 135\n";}
         $text->translate($x,$y);
         if ($node->isa("Text::KnuthPlass::Box")) {
             $text->text($node->value());
+print "about to call node->width for Box\n";
             $x += $node->width();
         } elsif ($node->isa("Text::KnuthPlass::Glue")) {
+print "about to call node->width for Glue\n";
             $x += ($node->width() - $reduceGlue) + $line->{'ratio'} *
 	    (($raggedRight)? 1:
                 ($line->{'ratio'} < 0 ? $node->shrink() : $node->stretch()));
@@ -145,19 +152,22 @@ for my $line (@lines) {
 	$text->text($split_hyphen); 
     }
     $y -= $text->leading();  # next line down
-}
-# --------------------------
-print "\nThere are ".scalar(@lines)." lines to output, occupying ";
-# leading amount (font size * $leading) * number of lines also works
-my $vertical_size = $ytop - $y;
-print "$vertical_size points vertical space.\n";
+ }
 
-# draw left and right margin lines
-$grfx->strokecolor("red");
-$grfx->linewidth(0.5);
-$grfx->poly($xleft,$ytop+$font_size, $xleft,$y+$font_size);
-$grfx->poly($xleft+$lineWidth,$ytop+$font_size, $xleft+$lineWidth,$y+$font_size);
-$grfx->stroke();
+# --------------------------
+ print "\nThere are ".scalar(@lines)." lines to output, occupying ";
+ # leading amount (font size * $leading) * number of lines also works
+ $vertical_size = $ytop - $y;
+ print "$vertical_size points vertical space.\n";
+
+ # draw left and right margin lines
+ $grfx->strokecolor("red");
+ $grfx->linewidth(0.5);
+ $grfx->poly($xleft,$ytop+$font_size, $xleft,$y+$font_size);
+ $grfx->poly($xleft+$lineWidth,$ytop+$font_size, $xleft+$lineWidth,$y+$font_size);
+ $grfx->stroke();
+ # done with this sample
+} 
 
 $pdf->saveas("$outfile.pdf");
 
@@ -183,6 +193,7 @@ sub getPara {
   if ($choice == 2) {
     # 2. a paragraph from page 16 of the Knuth-Plass article
     # note that at lineWidth=300, "right-hand" is split at the "-"
+    # linewidth 400, presen-t on last line!
     return
     "Some people prefer to have the right edge of their text look ‘solid’, ".
     "by setting periods, commas, and other punctuation marks (including ".
@@ -194,13 +205,14 @@ sub getPara {
     "box of width zero and adding the actual symbol width to the glue that ".
     "follows. If no break occurs at this glue, the accumulated width is the ".
     "same as before; and if a break does occur, the line will be justified ".
-    "as if  the period  or other symbol were not  present.".
+    "as if the period or other symbol were not present.".
     ""; }
 
   if ($choice == 3) {
     # 3. from a forum post of mine
     # note that at lineWidth=265 or so, there should be a split after the 
     # em-dash, but it refuses to split there (TBD)
+    # linewidth 400, vow-el split (tail end s/b min 3, too?)
     return
     "That double-dot you see above some letters\x{2014}they're the same ".
     "thing, right? No! Although they look the same, the two are actually very ".
@@ -208,9 +220,9 @@ sub getPara {
     "languages, and merely means that the primary vowel (a, o, or u) is ".
     "followed by an e. It is a shorthand for (initially) handwriting: \xE4 is ".
     "more or less interchangeable with ae (not to be confused with the \xE6 ".
-    "ligature), \xF6 is oe (again, not \x{0153}), and ü is ue. This, of course, ".
-    "changes the pronunciation of the vowel, just as adding an e to an ".
-    "English word (at the end) shifts the vowel sound (e.g., mat to mate). ".
+    "ligature), \xF6 is oe (again, not \x{0153}), and ü is ue. This, of ".
+    "course, changes the pronunciation of the vowel, just as adding an e to ".
+    "an English word (at the end) shifts the vowel sound (e.g., mat to mate). ".
     "Some word spellings, especially for proper names, may prefer one or the ".
     "other form (usually _e). Whether to use the umlaut form or the ".
     "two-letter form is usually an arbitrary choice in electronic ".
