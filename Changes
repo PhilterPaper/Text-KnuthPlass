@@ -1,4 +1,8 @@
-2022-04-18  1.07  (Phil M Perry)   UNRELEASED
+2022-06-20  1.07  (Phil M Perry)   UNRELEASED
+
+  lib/Text/KnuthPlass.pm add flag for minimum 3 letter suffix in hyphenation
+
+  META.json, MANIFEST add META.json
 
   KP.pl sample put all three texts on one page
 

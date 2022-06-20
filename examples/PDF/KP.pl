@@ -174,6 +174,15 @@ $pdf->saveas("$outfile.pdf");
 sub getPara {
   my ($choice) = @_;  
 
+# various HTML entities (so to speak)
+# consider flag to replace by ASCII characters
+my $mdash = "\x{2014}"; # --
+my $lsquo = "\x{2018}"; # '
+my $rsquo = "\x{2019}"; # '
+my $ldquo = "\x{201C}"; # "
+my $rdquo = "\x{201D}"; # "
+my $sect  = "\x{A7}";   # sect
+
   # original text for both used MS Smart Quotes for open and close single
   # quotes. replaced by ASCII single quotes ' so will work anywhere.
   if ($choice == 1) {
@@ -182,12 +191,12 @@ sub getPara {
     "In olden times when wishing still helped one, there lived a king ".
     "whose daughters were all beautiful; and the youngest was so beautiful ".
     "that the sun itself, which has seen so much, was astonished whenever it ".
-    "shone in her face. Close by the king’s castle lay a great dark forest, ".
-    "and under an old lime-tree in the forest was a well, and when the day ".
-    "was very warm, the king’s child went out into the forest and sat down ".
-    "by the side of the cool fountain; and when she was bored she took a ".
-    "golden ball, and threw it up on high and caught it; and this ball was ".
-    "her favorite plaything.".
+    "shone in her face. Close by the king${rsquo}s castle lay a great dark ".
+    "forest, and under an old lime-tree in the forest was a well, and when ".
+    "the day was very warm, the king${rsquo}s child went out into the forest ".
+    "and sat down by the side of the cool fountain; and when she was bored ".
+    "she took a golden ball, and threw it up on high and caught it; and this ".
+    "ball was her favorite plaything.".
     ""; }
 
   if ($choice == 2) {
@@ -195,17 +204,17 @@ sub getPara {
     # note that at lineWidth=300, "right-hand" is split at the "-"
     # linewidth 400, presen-t on last line!
     return
-    "Some people prefer to have the right edge of their text look ‘solid’, ".
-    "by setting periods, commas, and other punctuation marks (including ".
-    "inserted hyphens) in the right-hand margin. For example, this practice ".
-    "is occasionally used in contemporary advertising. It is easy to get ".
-    "inserted hyphens into the margin: We simply let the  width of the ".
-    "corresponding penalty item be zero. And it is almost as easy to do the ".
-    "same for periods and other symbols, by putting every such character in a ".
-    "box of width zero and adding the actual symbol width to the glue that ".
-    "follows. If no break occurs at this glue, the accumulated width is the ".
-    "same as before; and if a break does occur, the line will be justified ".
-    "as if the period or other symbol were not present.".
+    "Some people prefer to have the right edge of their text look ".
+    "${lsquo}solid${rsquo}, by setting periods, commas, and other punctuation ".
+    "marks (including inserted hyphens) in the right-hand margin. For ".
+    "example, this practice is occasionally used in contemporary advertising. ".
+    "It is easy to get inserted hyphens into the margin: We simply let the ".
+    "width of the corresponding penalty item be zero. And it is almost as ".
+    "easy to do the same for periods and other symbols, by putting every such ".
+    "character in a box of width zero and adding the actual symbol width to ".
+    "the glue that follows. If no break occurs at this glue, the accumulated ".
+    "width is the same as before; and if a break does occur, the line will be ".
+    "justified as if the period or other symbol were not present.".
     ""; }
 
   if ($choice == 3) {
@@ -214,23 +223,24 @@ sub getPara {
     # em-dash, but it refuses to split there (TBD)
     # linewidth 400, vow-el split (tail end s/b min 3, too?)
     return
-    "That double-dot you see above some letters\x{2014}they're the same ".
-    "thing, right? No! Although they look the same, the two are actually very ".
-    "different, and not at all interchangeable. An umlaut is used in Germanic ".
-    "languages, and merely means that the primary vowel (a, o, or u) is ".
-    "followed by an e. It is a shorthand for (initially) handwriting: \xE4 is ".
-    "more or less interchangeable with ae (not to be confused with the \xE6 ".
-    "ligature), \xF6 is oe (again, not \x{0153}), and ü is ue. This, of ".
-    "course, changes the pronunciation of the vowel, just as adding an e to ".
-    "an English word (at the end) shifts the vowel sound (e.g., mat to mate). ".
-    "Some word spellings, especially for proper names, may prefer one or the ".
-    "other form (usually _e). Whether to use the umlaut form or the ".
+    "That double-dot you see above some letters${mdash}they${rsquo}re the ".
+    "same thing, right? No! Although they look the same, the two are actually ".
+    "very different, and not at all interchangeable. An umlaut is used in ".
+    "Germanic languages, and merely means that the primary vowel (a, o, or u) ".
+    "is followed by an e. It is a shorthand for (initially) handwriting: \xE4 ".
+    "is more or less interchangeable with ae (not to be confused with the ".
+    "\xE6 ligature), \xF6 is oe (again, not \x{0153}), and \xFC is ue. This, ".
+    "of course, changes the pronunciation of the vowel, just as adding an e ".
+    "to an English word (at the end) shifts the vowel sound (e.g., mat to ".
+    "mate). Some word spellings, especially for proper names, may prefer one ".
+    "or the other form (usually _e). Whether to use the umlaut form or the ".
     "two-letter form is usually an arbitrary choice in electronic ".
     "typesetting, unless the chosen font lacks the umlaut form (as well as a ".
-    "combining \"dieresis\" character). It is more common in English-language ".
-    "cold metal typesetting to lack the umlaut form, and require the ".
-    "two-letter form. See also thorn and \"ye\", where the \"e\" was ".
-    "originally written as a superscript to the thorn (\xFE).".
+    "combining ${ldquo}dieresis${rdquo} character). It is more common in ".
+    "English-language cold metal typesetting to lack the umlaut form, and ".
+    "require the two-letter form. See also thorn and ${ldquo}ye${rdquo}, ".
+    "where the ${ldquo}e${rdquo} was originally written as a superscript to ".
+    "the thorn (\xFE).".
     ""; }
 
 }

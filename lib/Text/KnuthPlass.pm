@@ -79,7 +79,7 @@ my %defaults = (
     linelengths => [78],
     measure => sub { length $_[0] },
     hyphenator => 
-        eval { require Text::Hyphen } ? Text::Hyphen->new() :
+        eval { require Text::Hyphen } ? Text::Hyphen->new('min_suffix'=>3) :
         Text::KnuthPlass::DummyHyphenator->new()
 );
 __PACKAGE__->mk_accessors(keys %defaults);

@@ -18,4 +18,5 @@ tools/2_t-tests.pl
 tools/3_examples.pl
 tools/pod2cpanhtml.pl
 examples/PDF/KP.pl
+META.json
 META.yml
