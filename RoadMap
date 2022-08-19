@@ -153,3 +153,7 @@ Text::Hyphen) but still need to support such legacy hyphenation modules.
    right. In general, using H::S may necessitate width adjustments anyway, as 
    the returned glyph widths may not match the original Unicode characters. 
 
+   'solid'=>1 (default 0) to set "solid". One punctuation (not letter, accented
+   letter, digit, or any kind of space) at split point gets length of 0, with
+   actual length transferred to the glue following it. Want only one punct.
+   mark, not multiple ones, shoved into margin.

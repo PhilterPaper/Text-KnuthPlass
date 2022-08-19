@@ -175,13 +175,21 @@ sub getPara {
   my ($choice) = @_;  
 
 # various HTML entities (so to speak)
-# consider flag to replace by ASCII characters
+# flag to replace by ASCII characters
+my $use_ASCII = 0;
+
 my $mdash = "\x{2014}"; # --
 my $lsquo = "\x{2018}"; # '
 my $rsquo = "\x{2019}"; # '
 my $ldquo = "\x{201C}"; # "
 my $rdquo = "\x{201D}"; # "
 my $sect  = "\x{A7}";   # sect
+if ($use_ASCII) {
+	$mdash = '--';
+	$lsquo = $rsquo = '\'';
+	$ldquo = $rdquo = '"';
+	$sect  = 'sect';
+}
 
   # original text for both used MS Smart Quotes for open and close single
   # quotes. replaced by ASCII single quotes ' so will work anywhere.

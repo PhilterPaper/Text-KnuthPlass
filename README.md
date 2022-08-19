@@ -1,8 +1,8 @@
 # Text-KnuthPlass
 
-`Text::KnuthPlass` is a Perl and XS (C) implementation of the well-known Knuth Plass 
-TeX paragraph-shaping (a.k.a. line-breaking) algorithm, as created by Donald E.
-Knuth and Michael F. Plass in 1981.
+`Text::KnuthPlass` is a Perl and XS (C) implementation of the well-known 
+Knuth-Plass TeX paragraph-shaping (a.k.a. line-breaking) algorithm, as created
+by Donald E. Knuth and Michael F. Plass in 1981.
 
 Given a long string containing the text of a paragraph, this module decides
 where to split a line (possibly hyphenating a word in the process), while

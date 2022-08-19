@@ -90,7 +90,7 @@ sub new {
 
 =head1 NAME
 
-Text::KnuthPlass - Breaks paragraphs into lines using the TeX algorithm
+Text::KnuthPlass - Breaks paragraphs into lines using the TeX (Knuth-Plass) algorithm
 
 =head1 SYNOPSIS
 
@@ -185,7 +185,9 @@ C<Text::Hyphen> for the interface.)
 =back
 
 There are other options for fine-tuning the output. If you know your way
-around TeX, dig into the source to find out what they are.
+around TeX, dig into the source to find out what they are. At some point,
+this package will support tuning by allowing the setting of various parameters
+which are currently hard-coded.
 
 =head2 typeset
 
@@ -609,8 +611,8 @@ since 2020, maintained by Phil Perry
 
 =head1 ACKNOWLEDGEMENTS
 
-This module is a Perl translation of Bram Stein's "Typeset" Javascript 
-Knuth-Plass implementation. Any bugs, however, are probably my fault.
+This module is a Perl translation (originally by Simon Cozens) of Bram Stein's 
+"Typeset" Javascript Knuth-Plass implementation.
 
 =head1 BUGS
 

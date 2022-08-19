@@ -1,5 +1,5 @@
 ---
-abstract: 'Breaks paragraphs into lines using the TeX algorithm'
+abstract: 'Breaks paragraphs into lines using the TeX (Knuth-Plass) algorithm'
 author:
   - 'Phil Perry'
 requires:
