@@ -1,8 +1,10 @@
 #!/usr/bin/perl
-# run examples test suite
+# run examples test suite, 'text' or 'PDF' output
+# this needs to be run from the package root: tools/3_examples.pl [args]
+#   because it gets files from examples/resources/
+#
 # author: Phil M Perry
 #
-# TBD: glue together line fragments into one line and set wordspace() if PDF
 
 use strict;
 use warnings;
@@ -10,24 +12,76 @@ use warnings;
 # VERSION
 our $LAST_UPDATE = '1.07'; # manually update whenever code is changed
 
-# TBD command line switch to set test_type
+# defaults
+my $type      = '-cont';  # continuously run tests without pausing
 my $test_type = 'PDF';  # all tests in a subdirectory of examples/
 
 # dependent on optional packages:
 my $TH_installed = 1; # Text::Hyphen IS installed and you want to use it.
                       # will produce poor results if it's not installed!
+		      # set to 1 if you don't mind running without package.
 
-# command line:
+# command line flags (max one): 
 #   -step  = stop after each test to let the tester look at the PDF file
 #   -cont  = (default) run continuously to the end, to not tie up tester
 my $pause;
 
+# if at least one command line arg, see if flag -cont or -step
+if (scalar @ARGV > 0) {
+    if      ($ARGV[0] eq '-step') {
+        $type = '-step';
+    } elsif ($ARGV[0] eq '-cont') {
+	# default
+        $type = '-cont';
+    } elsif ($ARGV[0] =~ m/^-/) {
+	die "Unknown command line flag '$ARGV[0]'\n";
+    }
+    splice @ARGV, 0, 1;  # remove command line arg so <> will work
+}
+
+# command line run PDF/ or text/ examples (set $test_type)
+if (scalar @ARGV > 0) {
+    if ($ARGV[0] eq 'PDF' || $ARGV[0] eq 'text') {
+	$test_type = $ARGV[0];
+    } else {
+	print STDERR "Invalid test type '$ARGV[0]' ignored. Using '$test_type'.\n";
+    }
+    splice @ARGV, 0, 1;  # remove command line arg so <> will work
+}
+
+if (scalar @ARGV > 0) {
+    print STDERR "Additional command line entries '@ARGV' ignored!\n";
+}
+
 my (@example_list, @example_results);
 
+# comment out any blocks of tests you don't want to run
  if ($TH_installed && $test_type eq 'PDF') {
-  push @example_list, "$test_type/KP.pl";
+  push @example_list, "PDF/KP.pl";
   # output location when run tools/3_examples.pl
-  push @example_results, "create examples/KP.pdf, showing paragraph text formatted into a block of arbitrary-length lines.";
+  push @example_results, "create KP.pdf, showing paragraph text formatted into a block of arbitrary-length lines.";
+
+  push @example_list, "PDF/Flatland.pl";
+  # output location when run tools/3_examples.pl
+  push @example_results, "create Flatland.pdf, showing an excerpt from the novel \"Flatland\", including inserts for images.";
+
+  push @example_list, "PDF/Triangle.pl";
+  # output location when run tools/3_examples.pl
+  push @example_results, "create Triangle.pdf, showing some shaping using line lengths.";
+ }
+
+ if ($TH_installed && $test_type eq 'text') {
+  push @example_list, "text/KP.pl";
+  # output location when run tools/3_examples.pl
+  push @example_results, "create T_KP.txt, showing paragraph text formatted into a block of arbitrary-length lines.";
+
+  push @example_list, "text/Flatland.pl";
+  # output location when run tools/3_examples.pl
+  push @example_results, "create T_Flatland.txt, showing an excerpt from the novel \"Flatland\", including insert space for images (but no images).";
+
+  push @example_list, "text/Triangle.pl";
+  # output location when run tools/3_examples.pl
+  push @example_results, "create T_Triangle.txt, showing some shaping using line lengths.";
  }
 
 # run with perl examples/<file> [args]
@@ -39,25 +93,6 @@ my %args;
 #
 # KP needs ???? command line arguments
 # $args{'PDF/KP'} = "whatever";
-
-my $type;
-# one command line arg allowed (-cont is default)
-# TBD allow override of test_type on the command line (default PDF)
-if      (scalar @ARGV == 0) {
-    $type = '-cont';
-} elsif (scalar @ARGV == 1) {
-    if      ($ARGV[0] eq '-step') {
-        $type = '-step';
-    } elsif ($ARGV[0] eq '-cont') {
-	# default
-        $type = '-cont';
-    } else {
-	die "Unknown command line argument '$ARGV[0]'\n";
-    }
-    splice @ARGV, 0, 1;  # remove command line arg so <> will work
-} else {
-    die "0 or 1 argument permitted. -cont is default.\n";
-}
 
 $pause = '';
 # some warnings:

@@ -33,6 +33,7 @@ typedef struct LinkedList_s {
     AV* to_free;
 } LinkedList;
 
+// overrides _computeCost() in Perl (note name difference!)
 NV _compute_cost(Text_KnuthPlass self, IV start, IV end, Breakpoint* a, 
     IV current_line, AV* nodes) {
     IV  infinity   = ivHash(self, "infinity");
@@ -74,6 +75,7 @@ NV _compute_cost(Text_KnuthPlass self, IV start, IV end, Breakpoint* a,
     } else { return 0; }
 }
 
+// overrides _computeSum() in Perl (note name difference!)
 HV* _compute_sum(Text_KnuthPlass self, IV index, AV* nodes) {
     HV* result = newHV();
     HV* sum = (HV*)SvRV(*hv_fetch((HV*)self, "sum", 3, FALSE));
@@ -140,6 +142,7 @@ void _unlinkKP(LinkedList* list, Breakpoint* a) {
 
 MODULE = Text::KnuthPlass		PACKAGE = Text::KnuthPlass		
 
+// overrides _init_nodelist() in Perl 
 void
 _init_nodelist(self)
     Text_KnuthPlass self
@@ -150,9 +153,9 @@ _init_nodelist(self)
     activelist->head = activelist->tail = _new_breakpoint();
     activelist->list_size = 1;
     activelist->to_free = newAV();
- /* hv_stores((HV*)self, "activeNodes", ((IV)activelist)); */
     hv_stores((HV*)self, "activeNodes", ((SV *)activelist));
 
+// overrides _active_to_breaks() in Perl
 void _active_to_breaks(self)
     Text_KnuthPlass self
 
@@ -175,6 +178,7 @@ void _active_to_breaks(self)
         best = best->previous;
     }
 
+// overrides _cleanup() in Perl (dummy stub)
 void _cleanup(self)
     Text_KnuthPlass self
 
@@ -200,6 +204,7 @@ void _cleanup(self)
     sv_free((SV*)activelist->to_free);
     //Safefree(activelist);
 
+// overrides _mainloop() in Perl
 void
 _mainloop(self, node, index, nodes)
     Text_KnuthPlass self

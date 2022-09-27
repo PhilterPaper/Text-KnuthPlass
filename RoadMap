@@ -6,6 +6,9 @@ hankering to design/code and contribute some improvements (please check first!),
 that's good.
 ==========================================================================
 
+text output, if line is already as tight as possible (one space between each
+word), hyphen added at end will spill over past margin.
+
 The latest Bram Stein Javascript implementation is
 https://github.com/bramstein/typeset/ and is May 2012 (plus some later minor
 updates through April 2016), which is about a year after the last (original) 
@@ -82,6 +85,8 @@ have to wait until I have thoroughly studied KP, including the XS code. The
 A general means is needed to set parameters, such as 
 
  * slight differences between ragged-right and flush justified 
+ * ragged-left (flush right), centered
+ * RTL equivalents for ragged-right, ragged-left
  * need an indent amount (global) and then per-paragraph override of indent 
    amount and number of lines, such as to accommodate dropped caps. Also to
    suppress indent after a heading
