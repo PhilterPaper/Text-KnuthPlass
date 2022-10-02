@@ -45,6 +45,7 @@ my ($page, $grfx, $text, $ytop);
 
 #my $font = $pdf->ttfont("/Windows/Fonts/arial.ttf");
 my $font = $pdf->ttfont("/Windows/Fonts/times.ttf");
+my $fontI = $pdf->ttfont("/Windows/Fonts/timesi.ttf");
 #my $font = $pdf->corefont("Helvetica-Bold");
 
 my $vmargin = 100; # top and bottom margins, if fill at least one page
@@ -160,8 +161,10 @@ $t->line_lengths(@circle_LL);
 
     $ytop = $end_y;
 
+# skip 2 lines
+$ytop -= 2 * $font_size*$leading;
+
 # -------------
-fresh_page();
 # rectangle with two circular cutouts
 $paragraph = getPara(1);
 
@@ -205,39 +208,25 @@ $t->line_lengths(@odd_LL);
 
     $ytop = $end_y;
 
-# skip 2 lines
-$ytop -= 2 * $font_size*$leading;
-
 # -------------
+fresh_page();
 # "A Mouse's Tale" layout
+#
+# From Lewis Carroll's "Alice's Adventures in Wonderland" (1865).
+#
 # This is only using KP to adjust the second paragraph until it ends in the
-#   middle of the page. From there on out (the tail/tale itself) is a centered
-#   decreasing amplitude sine wave whih also decreases the font size.
+# middle of the page. From there on out (the tail/tale itself) is following
+# the offset and font size used in http://bootless.net/mouse.html, a most
+# readable version of the segment. This seemed much easier than trying to 
+# curve fit (polynomial or decreasing amplitude sine waves) the left side or
+# the centerline of the "tail". The font size would be a function of the 
+# vertical displacement. Undoubtedly, the original printing had to use fixed
+# conventional sized type, so it's not smoothly decreasing in size.
 #
-# Lewis Carroll's "Alice's Adventures in Wonderland" (1865). most readable
-# version from bootless.net/mouse.html, used here. note that font size and
-# leading decrease as you go down the page. probably define a sinusoidal wave
-# of decreasing amplitude to be the centerline of the text, with linear 
-# decreasing width (in points). try a multiplier starting at 1.0 and decreasing
-# by 5% at each line, to use on 1) line length, 2) font size, 3) leading. 
-# KP may have to be given a fixed font size to work against, so
-# possibly it will be a narrow but fixed width column? this brings up the issue
-# of KP handling a paragraph of a mix of font sizes and font faces, and how to
-# figure the word lengths! possibly a wrapper around KP to know about font face
-# and size used (embedded in the text?) and give hints to help with text length.
-#
-# If this is done with simply a decreasing font size on a constant-width column,
-# I'm not sure it's worth doing with KP except as a novelty. KP would only apply
-# to the first two regular paragraphs. Maybe part of KP.pl, and put the Pearl
-# River text (demo rivers) into triangle.pl? Adjust paragraph width so that
-# last "full" line of 2nd paragraph is fully justified, and tale is centered.
-# Might not be worth doing in a Text version.
 #    like this:--
 #       "Fury said to
  
 # various HTML entities (so to speak)
-# flag to replace by ASCII characters
-my $use_ASCII = 0;
 
 my $mdash = "\x{2014}"; # --
 my $lsquo = "\x{2018}"; # '
@@ -245,95 +234,162 @@ my $rsquo = "\x{2019}"; # '
 my $ldquo = "\x{201C}"; # "
 my $rdquo = "\x{201D}"; # "
 my $sect  = "\x{A7}";   # sect
+my $oelig = "\x{153}";  # oe ligature
 if ($use_ASCII) {
 	$mdash = '--';
 	$lsquo = $rsquo = '\'';
 	$ldquo = $rdquo = '"';
 	$sect  = 'sect';
+	$oelig = 'oe ligature';
 }
 
-.center 2
-                                The Mouse${rsquo}s Tale
-                                by Lewis Carroll
+$font_size = 10;
+$leading = 1.05;
+$xleft = 105;
+$lineWidth = $pageDim[2] - 2*$xleft;
+my $px_to_pt = 0.80;   # trial and error
+$t->line_lengths($lineWidth);
 
-.pa with indent 0
-    ${ldquo}Mine is a long and a sad tale!${rdquo} said the Mouse, turning to Alice, and sighing.
+# two headings, centered
+$text->font($font, $font_size*1.6);  # <h2>
+$ytop -= 1.6 * $font_size * $leading;
+$text->translate($xleft + $lineWidth/2, $ytop);
+$text->text_center("The Mouse${rsquo}s Tale");
 
-.pa with indent 0
-    ${ldquo}It is a long tail, certainly,${rdquo} said Alice, looking down with wonder at the Mouse${rsquo}s tail; ${ldquo}but why do you call it sad?${rdquo} And she kept on puzzling about it while the Mouse was speaking, so that her idea of the tale was something like this:${mdash}
+$text->font($font, $font_size*1.4);  # <h3>
+$ytop -= 1.4 * $font_size * $leading;
+$text->translate($xleft + $lineWidth/2, $ytop);
+$text->text_center("by Lewis Carroll");
 
-.sine wave in center, decreasing amplitude and font size
-.cover about 540 degrees. some words italic
-${ldquo}Fury said to
-a mouse, that
-he met
-in the
-house,
-${lsquo}Let us
-both go
-to law:
-I will
-prosecute
-you.${mdash}
-Come, I${rsquo}ll
-take no
-denial;
-We must
-have a
-trial:
-For
-really
-this
-morning
-I${rsquo}ve
-nothing
-to do.${rsquo}
-Said the
-mouse to
-the cur,
-${lsquo}Such a
-trial,
-dear sir,
-With no
-jury or
-judge,
-would be
-wasting
-our breath.${rsquo}
-${lsquo}I${rsquo}ll be
-judge,
-I${rsquo}ll be
-jury,${rsquo}
-Said
-cunning
-old Fury;
-${lsquo}I${rsquo}ll try
-the whole
-cause,
-and
-condemn
-you
-to
-death.${rsquo} ${rdquo}
-.five short pa follow, if there is room on the page
-
-$paragraph = getPara(1);
-
-$font_scale = 1.0;
-$text->font($font, $font_size*$font_scale);
-$baseline_delta = $font_size*$font_scale * $leading;
-$text->leading($baseline_delta);
-$radius = 5.0 * $baseline_delta;
-$xleft = 100;
-$lineWidth = $pageDim[2]-2*$xleft;
-
-$t->line_lengths(@odd_LL);
+$text->font($font, $font_size);
+$ytop -= 2 * $font_size * $leading;
+$paragraph = "${ldquo}Mine is a long and a sad tale!${rdquo} said the Mouse, turning to Alice, and sighing.";
 @lines = $t->typeset($paragraph);
     dump_lines(@lines) if $line_dump;
     # output @lines to PDF, starting at $xleft, $ytop
-    $end_y = write_paragraph('X', \@odd_start_x, @lines);
+    $end_y = write_paragraph('L', @lines);
 
     $ytop = $end_y;
+
+# skip 1 lines
+$ytop -= 1 * $font_size*$leading;
+
+$paragraph = "${ldquo}It is a long tail, certainly,${rdquo} said Alice, looking down with wonder at the Mouse${rsquo}s tail; ${ldquo}but why do you call it sad?${rdquo} And she kept on puzzling about it while the Mouse was speaking, so that her idea of the tale was something like this:${mdash}";
+@lines = $t->typeset($paragraph);
+    dump_lines(@lines) if $line_dump;
+    # output @lines to PDF, starting at $xleft, $ytop
+    $end_y = write_paragraph('L', @lines);
+
+    $ytop = $end_y;
+
+# each element is one line. 'text' is of course the text, 'left' is the
+# leftward displacement in pixels (convert to points), 'size' is the percentage
+# of the normal text size. 'italic' is a list of subelements (words) to 
+# italicize.
+my @tale = (
+{ 'text' => "${ldquo}Fury said to",    'left' => -60, 'size' => 105 },
+{ 'text' => "a mouse, that",           'left' => -40, 'size' => 100 },
+{ 'text' => "he met",                  'left' => 0,   'size' => 100 },
+{ 'text' => "in the",                  'left' => 10,  'size' => 100 },
+{ 'text' => "house,",                  'left' => 20,  'size' => 100 },
+{ 'text' => "${lsquo}Let us",          'left' => 17,  'size' => 100 },
+{ 'text' => "both go",                 'left' => 5,   'size' => 100 },
+{ 'text' => "to law:",                 'left' => -7,  'size' => 100 },
+{ 'text' => "I will",                  'left' => -23, 'size' => 100, 'italic' => [ 0 ] },
+{ 'text' => "prosecute",               'left' => -26, 'size' => 100 },
+{ 'text' => "you.${mdash}",            'left' => -40, 'size' => 90,  'italic' => [ 0 ] },
+{ 'text' => "Come, I${rsquo}ll",       'left' => -30, 'size' => 90  },
+{ 'text' => "take no",                 'left' => -20, 'size' => 90  },
+{ 'text' => "denial;",                 'left' => -7,  'size' => 90  },
+{ 'text' => "We must",                 'left' => 19,  'size' => 90  },
+{ 'text' => "have a",                  'left' => 45,  'size' => 90  },
+{ 'text' => "trial:",                  'left' => 67,  'size' => 90  },
+{ 'text' => "For",                     'left' => 80,  'size' => 90  },
+{ 'text' => "really",                  'left' => 70,  'size' => 80  },
+{ 'text' => "this",                    'left' => 57,  'size' => 80  },
+{ 'text' => "morning",                 'left' => 75,  'size' => 80  },
+{ 'text' => "I${rsquo}ve",             'left' => 95,  'size' => 80  },
+{ 'text' => "nothing",                 'left' => 77,  'size' => 80  },
+{ 'text' => "to do.${rsquo}",          'left' => 57,  'size' => 80  },
+{ 'text' => "Said the",                'left' => 38,  'size' => 70  },
+{ 'text' => "mouse to",                'left' => 30,  'size' => 70  },
+{ 'text' => "the cur,",                'left' => 18,  'size' => 70  },
+{ 'text' => "${lsquo}Such a",          'left' => 22,  'size' => 70  },
+{ 'text' => "trial,",                  'left' => 37,  'size' => 70  },
+{ 'text' => "dear sir,",               'left' => 27,  'size' => 70  },
+{ 'text' => "With no",                 'left' => 9,   'size' => 70  },
+{ 'text' => "jury or",                 'left' => -8,  'size' => 70  },
+{ 'text' => "judge,",                  'left' => -18, 'size' => 70  },
+{ 'text' => "would be",                'left' => -6,  'size' => 70  },
+{ 'text' => "wasting",                 'left' => 7,   'size' => 70  },
+{ 'text' => "our breath.${rsquo}",     'left' => 25,  'size' => 70  },
+{ 'text' => "${lsquo}I${rsquo}ll be",  'left' => 30,  'size' => 60  },
+{ 'text' => "judge,",                  'left' => 24,  'size' => 60  },
+{ 'text' => "I${rsquo}ll be",          'left' => 15,  'size' => 60  },
+{ 'text' => "jury,${rsquo}",           'left' => 2,   'size' => 60  },
+{ 'text' => "Said",                    'left' => -4,  'size' => 60  },
+{ 'text' => "cunning",                 'left' => 17,  'size' => 60  },
+{ 'text' => "old Fury;",               'left' => 29,  'size' => 60  },
+{ 'text' => "${lsquo}I${rsquo}ll try", 'left' => 37,  'size' => 60  },
+{ 'text' => "the whole",               'left' => 51,  'size' => 60  },
+{ 'text' => "cause,",                  'left' => 70,  'size' => 60  },
+{ 'text' => "and",                     'left' => 65,  'size' => 60  },
+{ 'text' => "condemn",                 'left' => 60,  'size' => 60  },
+{ 'text' => "you",                     'left' => 60,  'size' => 60  },
+{ 'text' => "to",                      'left' => 68,  'size' => 60  },
+{ 'text' => "death.${rsquo} ${rdquo}", 'left' => 82,  'size' => 60  },
+           );
+
+# what is current text position? interested in x value. position() doesn't
+# seem to work, due to not using standard text*() methods, so eyeball it
+#my ($xpos, $ypos) = $text->position();
+my $xpos = $xleft + $lineWidth/2 - 40;
+# ytop must be brought back up to the last line
+$ytop += $font_size*$leading;
+
+for my $tline (@tale) {
+    my $ltext = $tline->{'text'};
+    my $left  = $tline->{'left'};
+    my $size  = $tline->{'size'};
+    my $italic;
+    $italic = $tline->{'italic'} if defined $tline->{'italic'};
+
+    $ytop -= $size/100 * $font_size * $leading;
+    $text->translate($xpos + $left*$px_to_pt, $ytop);
+
+    # italics are first 1 or 2 characters, so split line
+    if ($italic) {
+	my @words = split /\s/, $ltext; # may be entire line in [0]
+        # currently only word[0] is italicized, so cheat
+	$text->font($fontI, $font_size*$size/100);
+        $text->text($words[0].' ');
+	if (@words > 1) {
+	    shift @words;
+            $text->font($font, $font_size*$size/100);
+            $text->text(join(' ', @words));
+	}
+
+	$italic = undef;
+    } else { # entire line in standard Roman font
+        $text->font($font, $font_size*$size/100);
+        $text->text($ltext);
+    }
+
+}
+
+# five short paragraphs follow, if there is room on the page. I don't
+# think it will QUITE fit, unfortunately, unless I reduce the font size
+# even more.
+
+#$paragraph = "${ldquo}You are not attending!${rdquo} said the Mouse to Alice, severely. ${ldquo}What are you thinking of?${rdquo}";
+
+#$paragraph = "${ldquo}I beg your pardon,${rdquo} said Alice very humbly, ${ldquo}you had got to the fifth bend, I think?${rdquo}";
+
+#$paragraph = "${ldquo}I had not!${rdquo} cried the Mouse sharply and very angrily.";
+
+#$paragraph = "${ldquo}A knot!${rdquo} said Alice, always ready to make herself useful, and looking anxiously about her. ${ldquo}Oh, let me help to undo it!${rdquo}";
+
+#$paragraph = "${ldquo}I shall do nothing of the sort,${rdquo} said the Mouse, getting up and walking away. ${ldquo}You insult me by talking such nonsense!${rdquo}";
 
 # ---- do once at very end
 $pdf->saveas("$outfile.pdf");
@@ -352,11 +408,13 @@ sub getPara {
     my $ldquo = "\x{201C}"; # "
     my $rdquo = "\x{201D}"; # "
     my $sect  = "\x{A7}";   # sect
+    my $oelig = "\x{153}";  # oe lig
     if ($use_ASCII) {
 	$mdash = '--';
 	$lsquo = $rsquo = '\'';
 	$ldquo = $rdquo = '"';
 	$sect  = 'sect';
+	$oelig = 'oe ligature';
     }
 
     # original text for both used MS Smart Quotes for open and close single
@@ -400,7 +458,7 @@ sub getPara {
     "Germanic languages, and merely means that the primary vowel (a, o, or u) ".
     "is followed by an e. It is a shorthand for (initially) handwriting: \xE4 ".
     "is more or less interchangeable with ae (not to be confused with the ".
-    "\xE6 ligature), \xF6 is oe (again, not \x{0153}), and \xFC is ue. This, ".
+    "\xE6 ligature), \xF6 is oe (again, not ${oelig}), and \xFC is ue. This, ".
     "of course, changes the pronunciation of the vowel, just as adding an e ".
     "to an English word (at the end) shifts the vowel sound (e.g., mat to ".
     "mate). Some word spellings, especially for proper names, may prefer one ".

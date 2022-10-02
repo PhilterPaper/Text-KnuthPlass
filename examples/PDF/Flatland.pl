@@ -72,11 +72,13 @@ my $rsquo = "\x{2019}"; # '
 my $ldquo = "\x{201C}"; # "
 my $rdquo = "\x{201D}"; # "
 my $sect  = "\x{A7}";   # sect
+my $oelig = "\x{153}";  # oe ligature
 if ($use_ASCII) {
 	$mdash = '--';
 	$lsquo = $rsquo = '\'';
 	$ldquo = $rdquo = '"';
 	$sect  = 'sect';
+	$oelig = 'oe ligature';
 }
 
 my $lineWidth = $pageDim[2]-2*$xleft; # Points, left margin = right margin

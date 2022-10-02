@@ -1,14 +1,14 @@
-2022-09-27  1.07  (Phil M Perry)   UNRELEASED
+2022-10-02  1.07  (Phil M Perry)   UNRELEASED
 
 * lib/Text/KnuthPlass.xs, lib/Text/KnuthPlass.pm XS NOT YET DONE
    Fix mishandling of line length array in XS code (was only looking at first 
     two elements). Remove elements as used, and return to application.
 
-* examples/text/KP.pl (new), examples/text/Flatland.pl (new), 
+  examples/text/KP.pl (new), examples/text/Flatland.pl (new), 
     examples/text/Triangle.pl (new), MANIFEST, tools/3_examples.pl
    Add more examples, this time for text file (.txt) output (constant width).
 
-* examples/PDF/Flatland.pl (new), examples/PDF/Triangle.pl (new),
+  examples/PDF/Flatland.pl (new), examples/PDF/Triangle.pl (new),
     examples/PDF/KP.pl, MANIFEST, tools/3_examples.pl
    Add more examples of PDF document creation, and update KP example.
 
@@ -16,7 +16,8 @@
    Pass paragraph indentation (or negative outdent amount) to KP algorithm, so
     can start even the first line of paragraph at same x value every time. 
     Allow per-paragraph setting of indentation via typeset() method and the new
-    line_lengths() method.
+    line_lengths() method. For compatibility with older applications, the
+    default indentation is 0.
 
   lib/Text/KnuthPlass.pm, README.md
    Add flag to ignore XS code (whether or not successfully installed) and just 

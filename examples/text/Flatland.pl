@@ -73,11 +73,13 @@ my $rsquo = "\x{2019}"; # '
 my $ldquo = "\x{201C}"; # "
 my $rdquo = "\x{201D}"; # "
 my $sect  = "\x{A7}";   # sect
+my $oelig = "\x{153}";  # oe ligature
 if ($use_ASCII) {
 	$mdash = '--';
 	$lsquo = $rsquo = '\'';
 	$ldquo = $rdquo = '"';
 	$sect  = 'sect';
+	$oelig = 'oe ligature';
 }
 
 # should allow 80-2*5 = 70 columns of text, from 6 to 75

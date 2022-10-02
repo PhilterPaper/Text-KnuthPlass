@@ -35,6 +35,7 @@ my ($page, $grfx, $text, $ytop);
 
 #my $font = $pdf->ttfont("/Windows/Fonts/arial.ttf");
 my $font = $pdf->ttfont("/Windows/Fonts/times.ttf");
+my $fontI = $pdf->ttfont("/Windows/Fonts/timesi.ttf");
 #my $font = $pdf->corefont("Helvetica-Bold");
 
 my $vmargin = 100; # top and bottom margins, if fill at least one page
@@ -81,6 +82,78 @@ for ($textChoice=1; $textChoice < 4; $textChoice++) {
     $ytop = $end_y;
 } 
 
+# first three lines break as desired, then it doesn't match sample
+# (which I don't know if it was produced with the TeX KP algorithm).
+
+# ---------- 
+# A paragraph about the Pearl River (China) used to illustrate "rivers" of
+# whitespace running down a paragraph. Unfortunately, this is difficult to
+# detect by algorithm, so parameters need to be adjusted manually after rivers
+# are discovered accidentally.
+#
+# this was given in https://tex.stackexchange.com/questions/4507/avoiding-rivers-in-successive-lines-of-type
+# to illustrate a "river" that runs vertically from top to bottom when the text
+# parameters are just right (large indent, first line ends at "total", second
+# at "the"). note that in general, detecting and eliminating rivers is a
+# computationally difficult task that TeX does not really handle.
+#
+# Example apparently from James Felici, _The Complete Manual of Typography_
+# (2003), p. 161 via "lockstep". lines split where they were in example.
+
+# various HTML entities (so to speak)
+my $mdash = "\x{2014}"; # --
+my $lsquo = "\x{2018}"; # '
+my $rsquo = "\x{2019}"; # '
+my $ldquo = "\x{201C}"; # "
+my $rdquo = "\x{201D}"; # "
+my $sect  = "\x{A7}";   # sect
+my $oelig = "\x{153}";  # oe ligature
+if ($use_ASCII) {
+	$mdash = '--';
+	$lsquo = $rsquo = '\'';
+	$ldquo = $rdquo = '"';
+	$sect  = 'sect';
+	$oelig = 'oe ligature';
+}
+
+# Needs own $lineWidth to precisely control line breaks, and
+# possibly its own $font_size, too. We want to break as indicated in
+# the following lines, which hopefully should show the rivers.
+
+$paragraph =
+"Though the Pearl measures less than 50 miles in total " .
+"length from its modest source as a cool mountain spring to the " .
+"screaming cascades and steaming estuary of its downstream " .
+"reaches, over those miles, the river has in one place or another " .
+"everything you could possibly ask for. You can roam among " .
+"lush temperate rain forests, turgid white water canyons, contemplative " .
+  # should hyphenate con-templative
+"meanders among aisles of staid aspens (with trout " .
+"leaping to slurp all the afternoon insects from its calm surface), " .
+  # should hyphenate sur-face
+"and forbidding swamp land as formidable as any that " .
+"Humphrey Bogart muddled through in "
+;
+  # italicize The African Queen although it has no real effect here
+  # just end at "through in", and if enough space left, change to
+  #   italic font and use $text->text() to write.
+my $ital = "The African Queen.";
+ 
+$lineWidth -= 15;
+@lines = $t->typeset($paragraph, 'linelengths' => [$lineWidth]);
+dump_lines(@lines) if $line_dump;
+# output @lines to PDF, starting at $xleft, $ytop
+$end_y = write_paragraph(@lines);
+
+# add italicized content at $x + one space, position by eyeball. should be on
+# last line, so spaces should be normal size
+$text->font($fontI, $font_size);
+$text->translate( 64, $end_y+$font_size*$leading);
+$text->text($ital);
+
+if ($do_margin_lines) { margin_lines(); }
+$ytop = $end_y;
+
 # ---- do once at very end
 $pdf->saveas("$outfile.pdf");
 
@@ -98,11 +171,13 @@ sub getPara {
     my $ldquo = "\x{201C}"; # "
     my $rdquo = "\x{201D}"; # "
     my $sect  = "\x{A7}";   # sect
+    my $oelig = "\x{153}";  # oe ligature
     if ($use_ASCII) {
 	$mdash = '--';
 	$lsquo = $rsquo = '\'';
 	$ldquo = $rdquo = '"';
 	$sect  = 'sect';
+	$oelig = 'oe ligature';
     }
 
     # original text for both used MS Smart Quotes for open and close single
@@ -146,7 +221,7 @@ sub getPara {
     "Germanic languages, and merely means that the primary vowel (a, o, or u) ".
     "is followed by an e. It is a shorthand for (initially) handwriting: \xE4 ".
     "is more or less interchangeable with ae (not to be confused with the ".
-    "\xE6 ligature), \xF6 is oe (again, not \x{0153}), and \xFC is ue. This, ".
+    "\xE6 ligature), \xF6 is oe (again, not ${oelig}), and \xFC is ue. This, ".
     "of course, changes the pronunciation of the vowel, just as adding an e ".
     "to an English word (at the end) shifts the vowel sound (e.g., mat to ".
     "mate). Some word spellings, especially for proper names, may prefer one ".

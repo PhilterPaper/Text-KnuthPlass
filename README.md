@@ -8,21 +8,32 @@ Given a long string containing the text of a paragraph, this module decides
 where to split a line (possibly hyphenating a word in the process), while
 attempting to:
 
-* maintain fairly consistent text "tightness" (limited change from line to line)
-* minimize hyphenation overall
-* not have two or more hyphenated lines in a row
-* not have entire words "floating" over the next line (particularly when not fully justified)
-* not hyphenate the paragraph's penultimate line
+* maintain text "tightness" within a reasonable, comfortably readable, range (neither jammed together nor excessively loose).
+* maintain fairly consistent text "tightness" (limited change from line to line).
+* minimize the amount of hyphenation overall (words split at a line end).
 
-What it **doesn't** do:
+What is a stated objective of Knuth-Plass but I **don't** think this implementation directly does:
+
+* minimize the number of lines resulting.
+* not have two or more hyphenated lines in a row.
+* not have entire words "floating" over the next line (particularly when not fully justified, e.g., "ragged right").
+* not hyphenate the paragraph's penultimate line.
+
+What it definitely **doesn't** do:
 
 * attempt to avoid widows and orphans. This is the job of the calling routine, as `Text::KnuthPlass` doesn't know how much of the paragraph fits on this page (or column) and how much has to be spilled to the next page or column.
 * attempt to avoid hyphenating the last word of the last line of a _split_ paragraph on a page or column (as before, it doesn't know where you're going to be splitting the paragraph between columns or pages).
 * attempt to optimize over an entire _page_ (it handles one paragraph at a time).
+* avoid having the same word (or fragment) starting or ending two lines in a row (a "stack").
+* avoid vertical "rivers" of whitespace.
+* avoid a very short or single word last line (a "cub").
+
+In spite of these limitations, the Knuth-Plass ("TeX line splitting") algorithm
+is still pretty much the gold standard for paragraph shaping.
 
 The Knuth-Plass algorithm does this by defining "boxes", "glue", and
 "penalties" for the paragraph text, and fiddling with line break points to
-minimize the overall sum of penalties (a penalty value for various "bad
+minimize the overall sum of demerits (a penalty value for various "bad
 typesetting" gaffes). This can result in the "breaking" of one
 or more of the listed rules, if it results in an overall better scoring ("better
 looking") layout.
@@ -90,17 +101,15 @@ update 2017). In 2011, Simon Cozens ported `typeset` to Perl, and called it
 took over maintenance of this package.
 
 **Note**:  gitpan/Text-KnuthPlass (on GitHub) appears to be a Read-Only
-archive of Text::KnuthPlass from before Perry took over maintenance. It is 
-older, and thus not very useful.
+archive of Text::KnuthPlass from _before_ Perry took over maintenance. It is 
+old, and thus not very useful.
 
 There are many copies of the Knuth-Plass paper/thesis, as well as discussions
 and explanations of the algorithm, floating around on the Web, so I will leave
 it to you to find some examples. Just the keywords _Knuth_ and _Plass_ should
 get you there.
 
-There are a number of known bugs in Text::KnuthPlass, and the first priority
-is to study post-2011 changes to `typeset` and see if they resolve the
-problems. There is also a refactored (still Javascript) version of 
+There is also a refactored (still Javascript) version of 
 `typeset`, intended for use as a library, in `frobnitzem/typeset`, which 
 should be looked at, as it was maintained through 2017. Finally, there are a 
 number of Knuth-Plass implementations in other languages, such as Python 
@@ -112,10 +121,14 @@ extend it in various ways.
 
 ## An Example
 
-Find an example of using Text::KnuthPlass in `examples/PDF/KP.pl`. It assumes 
-that Text::Hyphen and PDF::Builder are installed. You can easily substitute
-PDF::API2 and change the PDF::Builder references in the code. There are three
-text selections to format, and can change many settings, such as the
-font, font size, indentation amount, leading, line length (in Points), and
-whether output is flush right or ragged right. The output file is `KP.pdf`.
+Find an example of using Text::KnuthPlass in `examples/PDF/Flatland.pl`. It
+assumes that Text::Hyphen and PDF::Builder are installed. You can easily
+substitute PDF::API2 and change the PDF::Builder references in the code. You
+can change many settings, such as the font, font size, indentation amount,
+leading, line length (in Points), and whether output is flush right or ragged
+right. The output file is `Flatland.pdf`.
+
+There are more examples, including `KP.pl` and `Triangle.pl`, both giving some
+usage examples to get various effects, for a variety of input texts. Both PDF
+and text file outputs are produced.
 

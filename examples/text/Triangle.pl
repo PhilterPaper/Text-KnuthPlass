@@ -1,43 +1,50 @@
 #!/usr/bin/Perl
 # derived from Synopsis example in KnuthPlass.pm
-# REQUIRES PDF::Builder and Text::Hyphen (builds PDF output)
+# REQUIRES PDF::Builder and Text::Hyphen
 # TBD: command-line selection of line width, which text to format, perhaps
-#      choice of font and font size
-#      indent value
-#      see Flatland.pl for more items to address
+#        choice of font and font size
+#      see Flatland.pl for more items to consider
+#      several different "flavors" of triangles: isoceles, right with left
+#        vertical, right with right vertical, rights with flipped base,
+#        skewed triangle, even rotated triangle!
+#      copy and adjust line lengths and positions for circular, etc. examples
+#      see Flatland.pl for $ldquo etc. usage for ' and "
 use strict;
 use warnings;
+use utf8;
+use PDF::Builder;
 use Text::KnuthPlass;
 use POSIX qw/ceil floor/;
-    # Also POSIX character classes such as [[:punct:]] are used. I can't find
-    # which Perl they first appeared in, but the documentation for 5.10 suggests
-    # that it was already around by then. If someone discovers that they first
-    # appeared in something more recent, I will put an appropriate "use"
-    # statement here.
-use List::Util qw(max);
+use List::Util qw/max/;
 
 # flag to replace fancy punctuation by ASCII characters
 my $use_ASCII = 1;
-# force use of pure Perl version (not XS), if value 1
-my $purePerl = 1;
+# force use of pure Perl code
+my $purePerl = 1; # 0: use XS, 1: use Perl  DOESN'T WORK
 
-my $do_margin_lines = 1;  # draw vertical lines indicating margins
-my $outfile = 'T_KP';
+my $textChoice = 1;  # see getPara() at bottom, for choices of sample text
+my $outfile = 'T_Triangle';
 my $const = 0; # subtract from lineWidth to allow room for added hyphen
                # 0 for proportional font, 1 for text file, pts for const. width
 	       # IGNORED for now, needs fixing
 my $line_dump = 0;  # debug related
-my $raggedRight = 0; # 0 = flush right, 1 = ragged right
-my $indentAmount = 0; # chars to indent first line of paragraph
-                      # - outdents upper left corner of paragraph
-my $split_hyphen = '-';  # can't use non-ASCII characters
+my $do_margin_lines = 1; # debug... do not change, N/A
+
+my $font_scale = 1.7; # adjust to fill circle example
+my $radius = 26; # radius of filled circle
 
 my $vmargin = 2; # top and bottom margins
-my $xleft = 5;
+my $xleft = 5;  # left (and right) margin
 my @pageDim = (0,0, 80,66);
-# output is expected to be a single "page"
 
-my ($textChoice, $x, $y, $vertical_size);
+my $raggedRight = 0; # 0 = flush right, 1 = ragged right
+my $indentAmount = 0; # ems to indent first line of paragraph. - outdents
+#                       upper left corner of paragraph MUST BE 0
+my $split_hyphen = '-';
+
+my $pdf = PDF::Builder->new('compress' => 'none');
+#my $lineWidth = 400; # Points. get different wrapping effects by varying
+my $lineWidth = $pageDim[2]-2*$xleft; # Points, left margin = right margin
 my ($page, $ytop);
 open $page, ">$outfile.txt" or die "unable to open output file";
 my $start = 1; # empty file at this point
@@ -47,114 +54,183 @@ my $end   = 0; # special call to fresh_page to finish out bottom
 my $pageTop = $pageDim[3]-$vmargin; # each page starts here...
 my $ybot = $vmargin;                # and ends here
 
-# various HTML entities (so to speak)
-my $mdash = "\x{2014}"; # --
-my $lsquo = "\x{2018}"; # '
-my $rsquo = "\x{2019}"; # '
-my $ldquo = "\x{201C}"; # "
-my $rdquo = "\x{201D}"; # "
-my $sect  = "\x{A7}";   # sect
-my $oelig = "\x{153}";  # oe ligature
-if ($use_ASCII) {
+    # various HTML entities (so to speak)
+    # flag to replace by ASCII characters
+
+    my $mdash = "\x{2014}"; # --
+    my $lsquo = "\x{2018}"; # '
+    my $rsquo = "\x{2019}"; # '
+    my $ldquo = "\x{201C}"; # "
+    my $rdquo = "\x{201D}"; # "
+    my $sect  = "\x{A7}";   # sect
+    my $oelig = "\x{153}";  # oe ligature
+    if ($use_ASCII) {
 	$mdash = '--';
 	$lsquo = $rsquo = '\'';
 	$ldquo = $rdquo = '"';
 	$sect  = 'sect';
 	$oelig = 'oe ligature';
-}
+    }
 
-# should allow 80-2*5 = 70 columns of text, from 6 to 75
-my $lineWidth = $pageDim[2]-2*$xleft; # Points, left margin = right margin
 my ($w, $t, $paragraph, @lines, $indent, $end_y);
+my ($x, $y, $vertical_size);
 
 fresh_page();
 
-    # create Knuth-Plass object, build line set with it
-    $t = Text::KnuthPlass->new(
-	'indent' => 0,
-        'space' => { 'width' => 3, 'stretch' => 6, 'shrink' => 0 },
-        'measure' => sub { length(shift) }, 
-        'linelengths' => [$lineWidth]  
-    );
+# create Knuth-Plass object, build line set with it
+$t = Text::KnuthPlass->new(
+    'measure' => sub { length(shift) }, 
+    'linelengths' => [ $lineWidth ],  # dummy placeholder
+    'space' => { 'width' => 3, 'stretch' => 6, 'shrink' => 0 },
+    'indent' => 0,
+);
 
 # ---------- actual page content
-#   three selections, at given line width and indentation
-for ($textChoice=1; $textChoice<=3; $textChoice++) {
-    # $ytop already set
-    $indent = $indentAmount;
-    $paragraph = getPara($textChoice);
+my $widthHyphen = 1;
 
-    # split up the paragraph's lines, start writing on this page, may continue.
-    @lines = $t->typeset($paragraph);
-    dump_lines(@lines);
-    # output @lines to file, starting at $xleft, $ytop
-    $end_y = write_paragraph(@lines);
+# ------------- 1
+# right triangle, straight vertical side at left
+my @list_LL = (
+	    # too narrow a line seems to cause problems
+#	            $lineWidth*0.05, $lineWidth*0.10,
+                    $lineWidth*0.15, $lineWidth*0.20,
+                    $lineWidth*0.25, $lineWidth*0.30,
+                    $lineWidth*0.35, $lineWidth*0.40,
+                    $lineWidth*0.45, $lineWidth*0.50,
+                    $lineWidth*0.55, $lineWidth*0.60,
+                    $lineWidth*0.65, $lineWidth*0.70,
+                    $lineWidth*0.75, $lineWidth*0.80,
+                    $lineWidth*0.85, $lineWidth*0.90,
+                    $lineWidth*0.95, $lineWidth*1.00,
+	      );
 
-    text(" "); text(" ");  # skip two lines
+$paragraph = getPara(1);
+
+$t->line_lengths(@list_LL);
+@lines = $t->typeset($paragraph);
+    dump_lines(@lines) if $line_dump;
+    # output @lines to PDF, starting at $xleft, $ytop
+    $end_y = write_paragraph('L', @lines);
+
+# skip 2 lines
+text(" "); text("  ");
+
+# ------------- 2
+# isoceles triangle, use text_center()
+$paragraph = getPara(2);
+
+$t->line_lengths(@list_LL);
+@lines = $t->typeset($paragraph, 'linelengths' => \@list_LL);
+    dump_lines(@lines) if $line_dump;
+    # output @lines to PDF, starting at $xleft, $ytop
+    $end_y = write_paragraph('C', @lines);
+
+# skip 2 lines
+text(" "); text(" ");
+
+# ------------- 3
+# right triangle with vertical at right margin, use text_right()
+$paragraph = getPara(3);
+
+$t->line_lengths(@list_LL);
+@lines = $t->typeset($paragraph);
+    dump_lines(@lines) if $line_dump;
+    # output @lines to PDF, starting at $xleft, $ytop
+    $end_y = write_paragraph('R', @lines);
+
+# skip 2 lines
+text(" "); text(" ");
+
+# ------------- 4
+# filled circle, can't adjust font_size to fill as much as possible
+# (reduce radius instead)
+$paragraph = getPara(1);
+
+# xc,yc at xleft+.5*lineWidth (need minimum 2*radius height available)
+if (2*$radius > $lineWidth) { $radius = round($lineWidth/2); }
+# if ($ytop - 2*$radius < $ybot) { fresh_page(); }
+
+my $baseline_delta = 1;
+
+# figure set of line lengths, plus extra full width for overflow
+# text is centered at xc.
+my ($delta_x, @circle_LL);
+for (my $circle_y = $ytop-$baseline_delta; 
+	$circle_y > $ytop-2*$radius; 
+	$circle_y -= $baseline_delta) {
+    $delta_x = round(sqrt($radius**2 - ($circle_y-$ytop+$radius)**2));
+    push @circle_LL, 2*$delta_x;
 }
+push @circle_LL, $lineWidth*0.8;  # for overflow from circle
 
-# You can see three-line rivers near the left and right margins.
+$t->line_lengths(@circle_LL);
+@lines = $t->typeset($paragraph);
+    dump_lines(@lines) if $line_dump;
+    # output @lines to PDF, starting at $xleft, $ytop
+    $end_y = write_paragraph('C', @lines);
 
-# ---------- 
-# A paragraph about the Pearl River (China) used to illustrate "rivers" of
-# whitespace running down a paragraph. Unfortunately, this is difficult to
-# detect by algorithm, so parameters need to be adjusted manually after rivers
-# are discovered accidentally.
+# skip 2 lines
+text(" "); text(" ");
+
+# ------------- 5
+# rectangle with two circular cutouts
+$paragraph = getPara(1);
+
+$baseline_delta = 1;
+$radius = 5.0 * $baseline_delta;
+$lineWidth = $pageDim[2]-2*$xleft;
+
+# figure set of line lengths, plus extra full width for overflow
+my (@odd_LL, @odd_start_x, @odd_end_x);
+for (my $odd_y = 0; 
+	$odd_y <= $baseline_delta*2+$radius; 
+	$odd_y += $baseline_delta) {
+
+    if ($odd_y < $radius) {
+	# line starts at delta_x
+        $delta_x = round(sqrt($radius**2 - $odd_y**2));
+        push @odd_start_x,  $delta_x;
+	unshift @odd_end_x, $lineWidth-$delta_x;
+    } else {
+	# line starts at beginning
+        push @odd_start_x, 0;
+	unshift @odd_end_x, $lineWidth;
+    }
+}
+	
+# line lengths
+for (my $row = 0; $row < @odd_start_x; $row++) {
+    push @odd_LL, $odd_end_x[$row]-$odd_start_x[$row];
+}
+push @odd_LL, $lineWidth*0.8;  # for overflow from area
+
+$t->line_lengths(@odd_LL);
+@lines = $t->typeset($paragraph);
+    dump_lines(@lines) if $line_dump;
+    # output @lines to PDF, starting at $xleft, $ytop
+    $end_y = write_paragraph('X', \@odd_start_x, @lines);
+
+#fresh_page();
+# ------------- 6
+# "A Mouse's Tale" layout
 #
-# this was given in https://tex.stackexchange.com/questions/4507/avoiding-rivers-in-successive-lines-of-type
-# to illustrate a "river" that runs vertically from top to bottom when the text
-# parameters are just right (large indent, first line ends at "total", second
-# at "the"). note that in general, detecting and eliminating rivers is a
-# computationally difficult task that TeX does not really handle.
-#
-# Example apparently from James Felici, _The Complete Manual of Typography_
-# (2003), p. 161 via "lockstep". lines split where they were in example.
-
-# Needs own $lineWidth to precisely control line breaks, and
-# can't give a $font_size, too. We want to break as indicated in
-# the following lines, which hopefully should show the rivers.
-
-$paragraph =
-"Though the Pearl measures less than 50 miles in total " .
-"length from its modest source as a cool mountain spring to the " .
-"screaming cascades and steaming estuary of its downstream " .
-"reaches, over those miles, the river has in one place or another " .
-"everything you could possibly ask for. You can roam among " .
-"lush temperate rain forests, turgid white water canyons, contemplative " .
-  # should hyphenate con-templative
-"meanders among aisles of staid aspens (with trout " .
-"leaping to slurp all the afternoon insects from its calm surface), " .
-  # should hyphenate sur-face
-"and forbidding swamp land as formidable as any that " .
-  # can't italicize The African Queen 
-"Humphrey Bogart muddled through in The African Queen."
-;
- 
-$lineWidth -= 10;
-@lines = $t->typeset($paragraph, 'linelengths' => [$lineWidth]);
-dump_lines(@lines) if $line_dump;
-# output @lines to PDF, starting at $xleft, $ytop
-$end_y = write_paragraph(@lines);
-
-$ytop = $end_y;
-
-text(" "); text(" ");  # skip two lines
+# See PDF/Triangle.pl. can't do it here because it requires both variably
+# sized fonts and fine control over line placement.
 
 # ---- do once at very end
 $end = 1;
 fresh_page();
-close $page;
+$pdf->saveas("$outfile.txt");
 
 # END
 
-# --------------------------
 sub getPara {
-  my ($choice) = @_;  
+    my ($choice) = @_;  
 
-  # original text for both used MS Smart Quotes for open and close single
-  # quotes. replaced by ASCII single quotes ' so will work anywhere.
-  if ($choice == 1) {
-    # 1. a paragraph from "The Frog King" (Grimms)
+    # original text for both used MS Smart Quotes for open and close single
+    # quotes. replaced by ASCII single quotes ' so will work anywhere.
+    if ($choice == 1) {
+      # 1. a paragraph from "The Frog King" (Grimms)
     return 
     "In olden times when wishing still helped one, there lived a king ".
     "whose daughters were all beautiful; and the youngest was so beautiful ".
@@ -167,10 +243,8 @@ sub getPara {
     "ball was her favorite plaything.".
     ""; }
 
-  if ($choice == 2) {
-    # 2. a paragraph from page 16 of the Knuth-Plass article
-    # note that at lineWidth=300, "right-hand" is split at the "-"
-    # linewidth 400, presen-t on last line!
+    if ($choice == 2) {
+      # 2. a paragraph from page 16 of the Knuth-Plass article
     return
     "Some people prefer to have the right edge of their text look ".
     "${lsquo}solid${rsquo}, by setting periods, commas, and other punctuation ".
@@ -185,11 +259,9 @@ sub getPara {
     "justified as if the period or other symbol were not present.".
     ""; }
 
-  if ($choice == 3) {
-    # 3. from a forum post of mine
-    # note that at lineWidth=265 or so, there should be a split after the 
-    # em-dash, but it refuses to split there (TBD)
-    # linewidth 400, vow-el split (tail end s/b min 3, too?)
+    if ($choice == 3) {
+      # 3. from a forum post of mine
+      # fix UTF-8 characters to Latin-1 equivalent
     return
     "That double-dot you see above some letters${mdash}they${rsquo}re the ".
     "same thing, right? No! Although they look the same, the two are actually ".
@@ -197,7 +269,7 @@ sub getPara {
     "Germanic languages, and merely means that the primary vowel (a, o, or u) ".
     "is followed by an e. It is a shorthand for (initially) handwriting: \xE4 ".
     "is more or less interchangeable with ae (not to be confused with the ".
-    "ae ligature), \xF6 is oe (again, not ${oelig}), and \xFC is ue. This, ".
+    "\xE6 ligature), \xF6 is oe (again, not ${oelig}), and \xFC is ue. This, ".
     "of course, changes the pronunciation of the vowel, just as adding an e ".
     "to an English word (at the end) shifts the vowel sound (e.g., mat to ".
     "mate). Some word spellings, especially for proper names, may prefer one ".
@@ -212,10 +284,7 @@ sub getPara {
     ""; }
 
 }
-
-# END
-
-# ======================================================================
+# --------------------------
 sub fresh_page {
     # set up a new page, with no content
     # $start = 1: flag to suppress BoP 
@@ -244,7 +313,7 @@ sub text_center {
     my ($string) = @_;
     my $empty = $pageDim[2]-2*$xleft-length($string);
     $ytop--;
-    print $page ' ' x ($xleft+$empty/2) . $string . "\n";
+    print $page ' ' x ($xleft+round($empty/2)) . $string . "\n";
 }
 
 sub text {  # left justified
@@ -260,48 +329,17 @@ sub text_right {  # right-justified
     print $page ' ' x ($xleft+$empty) . $string . "\n";
 }
 
-# need to carve out space for floats (images) on right?
-sub space_for_image {
-    # return an array reference containing the lengths need for the 
-    # listlengths array in the new() method. $margin_r can be less than
-    # zero to have the image stick out into the right margin
-    # $start is number of full-length entries to stick at the beginning,
-    #   as the image starts that many lines down
-    my ($indent, $lineWidth, $img_w, $img_h,
-	$margin_l, $margin_t, $margin_r, $margin_b, $leading, $start) = @_;
-
-    my @list;
-    $img_w += $margin_l; $img_w += $margin_r;
-    $img_h += $margin_t; $img_h += $margin_b;
-    # width and height now include a margin around the image, to account
-    # (in part) for variation in inked descenders at the top and ascenders
-    # at the bottom
-
-    # if $start > 0, push that many full lines
-    for (my $i = 0; $i < $start; $i++) {
-        push @list, $lineWidth;
-    }
-
-    # figure how many lines ($leading amount) to shorten, one element for
-    # each shortened line
-    my $num_lines = ceil($img_h / $leading);
-     
-    for (my $i = 0; $i < $num_lines; $i++) {
-	push @list, $lineWidth-$img_w;
-    }
-    # add full width line at end
-    push @list, $lineWidth;
-
-    return \@list;
-}
-
 # --------------------------
-# write_paragraph(@lines)
+# write_paragraph($align, @lines)
 # if y goes below ybot, start new page and finish paragraph
-# does NOTHING to check for widows and orphans, or for float inset across
-#   page break! you'll need to manually clean up those.
+# does NOTHING to check for widows and orphans!
 sub write_paragraph {
-    my (@lines) = @_;
+    my $align = shift;
+    my @offsets;  # extra offsets for custom effects
+    if ($align eq 'X') {
+        @offsets = @{ shift(@_) };
+    }
+    my @lines = @_;
 
     my $x;
     my $y = $ytop;  # current starting y
@@ -322,18 +360,28 @@ sub write_paragraph {
     for my $line (@lines) {
 	my $line_str = '';
 	my $ratio = $line->{'ratio'};
-        $x = $xleft; 
+        $x = 0;  # we do xleft later after centering or right align
+	if ($align eq 'X' && @offsets) {
+	    my $xoffset = shift(@offsets);
+	    $x += $xoffset;
+	    $line_str .= ' ' x $xoffset;
+	}
+        if ($indent > 0) {
+	    $x += $indent;
+	    $line_str .= ' ' x $indent;
+	    $indent = 0;
+        }
+
         print "========== new line @ $x,$y ==============\n" if $line_dump;
-	$x += $indent; # done separately so debug shows valid $x
-	$line_str .= ' ' x $x; 
+	# done separately so debug shows valid $x. later we add xleft and ind.
 	$indent = 0;
 
         # how much to reduce each glue due to adding hyphen at end
         # According to Knuth-Plass article, some designers prefer to have
-        #   punctuation (including the word-splitting hyphen) hang over past the
-        #   right margin (as the original code did here). However, other
-        #   punctuation did NOT hang over, so that would need some work to 
-	#   separate out line-end punctuation and giving the box a zero width.
+        # punctuation (including the word-splitting hyphen) hang over past the
+        # right margin (as the original code did here). However, other
+        # punctuation did NOT hang over, so that would need some work to 
+	# separate out line-end punctuation and giving the box a zero width.
 
         my $useSplitHyphen = 0;
         if ($line->{'nodes'}[-1]->is_penalty()) { 
@@ -365,7 +413,7 @@ sub write_paragraph {
 	    } # examined node needs to be a Box
         } # there IS a penalty on this line (split word)
 
-        # one line of output
+        # prepare one line of output
         # each node is a box (text) or glue (variable-width space)...
 	#   ignore penalty
 	my $node;
@@ -397,6 +445,24 @@ sub write_paragraph {
 		# of interest if hyphenated word at end of line)
 	    }
         }
+	# now have raw output (including any positive indent) before addng 
+	# center/right alignment, then xleft added in
+
+	my $length = length($line_str);
+	my $x_offset = 0;
+	# set starting offset of full string per alignment
+	if      ($align eq 'L' || $align eq 'X') {
+            $x_offset = 0;
+	} elsif ($align eq 'C') {
+            $x_offset = round(($lineWidth-$length)/2);
+	} else { # 'R'
+            $x_offset = $lineWidth-$length;
+	}
+	# take care of any negative indent here
+	$x_offset = max(0, $x_offset + $xleft + $indent);
+	$x += $x_offset;
+	$line_str = (' ' x $x_offset) . $line_str;
+
         # add hyphen to text ONLY if fragment didn't already end with some
         # sort of hyphen or dash 
         if ($useSplitHyphen) {
@@ -415,6 +481,31 @@ sub write_paragraph {
     } # end of handling line element
     return $y;
 } # end of write_paragraph()
+
+# --------------------------
+sub margin_lines {
+    my ($line) = @_;
+
+    if ($do_margin_lines) {
+        # draw left and right margin lines
+	
+	# right: pad out with blanks to xleft+lineWidth, write |
+	# (only if overwriting a blank)
+	my $pad = $xleft + $lineWidth + 1 - length($line);
+	if ($pad > 0) { $line .= ' ' x $pad; }
+	if (substr($line, $xleft + $lineWidth, 1) eq ' ') {
+	    substr($line, $xleft + $lineWidth, 1) = '|';
+	}
+
+	# left:  if xleft==0, insert at first. otherwise at overwrite xleft-1
+	if ($xleft > 0) {
+	    substr($line, $xleft - 1, 1) = '|';
+	} else {
+	    $line = '|'.$line;
+	}
+    }
+    return $line;
+}
 
 # --------------------------
 # input is one line, a collection of nodes
@@ -492,7 +583,7 @@ sub get_spaces {
         # likely to be just over or under an even integer
         $add_spaces = floor($add_spaces + 0.5);
         # for some reason, it's always twice what we need (is even, too)
-        $add_spaces /= 2;
+        $add_spaces = round($add_spaces/2);
         # if going to add a hyphen at end, reduce by 1
         if ($adding_hyphen) { $add_spaces--; }
 
@@ -568,31 +659,6 @@ sub get_spaces {
 } # end of get_spaces()
 
 # --------------------------
-sub margin_lines {
-    my ($line) = @_;
-
-    if ($do_margin_lines) {
-        # draw left and right margin lines
-	
-	# right: pad out with blanks to xleft+lineWidth, write |
-	# (only if overwriting a blank)
-	my $pad = $xleft + $lineWidth + 1 - length($line);
-	if ($pad > 0) { $line .= ' ' x $pad; }
-	if (substr($line, $xleft + $lineWidth, 1) eq ' ') {
-	    substr($line, $xleft + $lineWidth, 1) = '|';
-	}
-
-	# left:  if xleft==0, insert at first. otherwise at overwrite xleft-1
-	if ($xleft > 0) {
-	    substr($line, $xleft - 1, 1) = '|';
-	} else {
-	    $line = '|'.$line;
-	}
-    }
-    return $line;
-}
-
-# --------------
 # dump @lines (diagnostics)
 sub dump_lines {
     my (@lines) = @_;
@@ -634,3 +700,7 @@ sub dump_lines {
     return;
 } # end of dump_lines()
 
+sub round {
+    my $fvalue = shift;
+    return floor($fvalue + 0.5);
+}

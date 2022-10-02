@@ -103,7 +103,7 @@ my %defaults = (
     'const' => 0,  # width (char or points) to reduce line length to allow
                    # for word-split hyphen without overflow into margin
 		   # CURRENTLY UNUSED
-    'indent' => 2, # global paragraph indentation count
+    'indent' => 0, # global paragraph indentation width
 );
 __PACKAGE__->mk_accessors(keys %defaults);
 sub new { 
@@ -120,22 +120,35 @@ Text::KnuthPlass - Breaks paragraphs into lines using the TeX (Knuth-Plass) algo
 
 =head1 SYNOPSIS
 
+To use with plain text, indentation of 2. NOTE that you should also
+set the shrinkability of spaces to 0 in the new() call:
+
     use Text::KnuthPlass;
-    my $typesetter = Text::KnuthPlass->new();
+    my $typesetter = Text::KnuthPlass->new(
+	'indent' => 2, # two characters,
+        # set space shrinkability to 0
+	'space' => { 'width' => 3, 'stretch' => 6, 'shrink' -> 0 },
+	# can let 'measure' default to character count
+	# default line lengths to 78 characters
+    );
     my @lines = $typesetter->typeset($paragraph);
     ...
 
-To use with plain text, default indentation of 2:
-
-    for (@lines) {
-        for (@{$_->{'nodes'}}) {
-            if ($_->isa("Text::KnuthPlass::Box")) { 
-                print $_->value();
-            } elsif ($_->isa("Text::KnuthPlass::Glue")) {
+    for my $line (@lines) {
+        for my $node (@{$line->{'nodes'}}) {
+            if ($node->isa("Text::KnuthPlass::Box")) { 
+	        # a Box is a word or word fragment (no hyphen on fragment)
+                print $node->value();
+            } elsif ($node->isa("Text::KnuthPlass::Glue")) {
+	        # a Glue is (at least) a single space, but you can look at 
+		# the line's 'ratio' to insert additional spaces to 
+		# justify the line. we also are glossing over the skipping
+		# of any final glue at the end of the line
                 print " ";
             }
+	    # ignoring Penalty (word split point) within line
         }
-        if ($_->{'nodes'}[-1]->is_penalty()) { print "-"; }
+        if ($line->{'nodes'}[-1]->is_penalty()) { print "-"; }
         print "\n";
     }
 
@@ -152,21 +165,27 @@ To use with PDF::Builder: (also PDF::API2)
     );
     my @lines = $t->typeset($paragraph);
 
-    my $y = 500;
+    my $y = 500;  # PDF decreases y down the page
     for my $line (@lines) {
-        $x = 50; 
+        $x = 50;  # left margin
         for my $node (@{$line->{'nodes'}}) {
             $text->translate($x,$y);
             if ($node->isa("Text::KnuthPlass::Box")) {
+	        # a Box is a word or word fragment (no hyphen on fragment)
                 $text->text($node->value());
                 $x += $node->width();
             } elsif ($node->isa("Text::KnuthPlass::Glue")) {
+	        # a Glue is a variable-width space
                 $x += $node->width() + $line->{'ratio'} *
                     ($line->{'ratio'} < 0 ? $node->shrink(): $node->stretch());
+		# we also are glossing over the skipping
+		# of any final glue at the end of the line
             }
+	    # ignoring Penalty (word split point) within line
         }
+	# explicitly add a hyphen at a line-ending split word
         if ($line->{'nodes'}[-1]->is_penalty()) { $text->text("-"); }
-        $y -= $text->leading();
+        $y -= $text->leading(); # go to next line down
     }
 
 =head1 METHODS
@@ -187,7 +206,7 @@ into your font metrics if you're doing something graphical. For PDF::Builder
 C<text_width()>), which returns the width of a string (in the present font 
 and size) in points.
 
-    'measure' => sub { length(shift) },  # for character output
+    'measure' => sub { length(shift) },  # default, for character output
     'measure' => sub { $text->advancewidth(shift) }, # PDF::Builder/API2
 
 =item linelengths
@@ -218,12 +237,13 @@ C<linelengths()> method to get or set the list.
 
 =item indent
 
-This sets the global (default) paragraph indentation, unless overridden by
+This sets the global (default) paragraph indentation, unless overridden 
+on a per-paragraph basis by
 an C<indent> entry in a C<typeset()> call. The units are the same as for
-C<meaure> and C<linelengths>. A "Box" of value '' and width of C<indent> is
+C<meaure> and C<linelengths>. A "Box" of value C<''> and width of C<indent> is
 inserted before the first node of the paragraph. Your rendering code should
 know how to handle this by starting at the same C<x> coordinate as other lines,
-and then moving right by the indicated amount.
+and then moving right (or left) by the indicated amount.
 
     'indent' => 2,  # 2 character indentation
     'indent' => 2*$text->text_width('M'),  # 2 ems indentation
@@ -240,10 +260,10 @@ value far enough to the right that text will not end up being written off-page.
 How much leeway we have in leaving wider spaces than the algorithm
 would prefer. The C<tolerance> is the maximum C<ratio> glue expansion value to
 I<tolerate> in a possible solution, before discarding this solution as so
-infeasible as to be a waste of time. Most of the time, the C<tolerance> is
-going to have a value in the 1 to 3 range. One approach is to try with 
-C<tolerance =E<gt> 1>, and if no successful layout is found, try again with 2,
-and then 3 and perhaps even 4.
+infeasible as to be a waste of time to pursue further. Most of the time, the 
+C<tolerance> is going to have a value in the 1 to 3 range. One approach is to 
+try with C<tolerance =E<gt> 1>, and if no successful layout is found, try 
+again with 2, and then 3 and perhaps even 4.
 
 =item hyphenator
 
@@ -280,7 +300,7 @@ The default value for I<infinity> is, as is customary in TeX, 10000. While this
 is a far cry from the real infinity, so long as it is substantially larger than
 any other demerit or penalty, it should take precedence in calculations. Both
 positive and negative C<inifinity> are used in the code for various purposes,
-including +inf penalty for something absolutely forbidden, and -inf for 
+including a C<+inf> penalty for something absolutely forbidden, and C<-inf> for 
 something absolutely required (such as a line break at the end of a paragraph).
 
     'infinity' => 10000,
@@ -293,6 +313,13 @@ that excessively short lines are prone to splitting words and being hyphenated,
 no matter what the penalty is.
 
     'hyphenpenalty' => 50,
+
+There does not appear to be anything in the code to find and prevent multiple
+contiguous (adjacent) hyphenated lines, nor to prevent the penultimate 
+(next-to-last) line from being hyphenated, nor to prevent the hyphenation of
+a line where you anticipate the paragraph to be split between columns.
+Something may be done in the future about these three special cases, which
+are considered to not be good typesetting.
 
 =item demerits
 
@@ -358,7 +385,8 @@ The typesetter currently allows several options:
 
 =item indent
 
-Override the global paragraph indentation value. This can be useful for
+Override the global paragraph indentation value B<just for this paragraph.> 
+This can be useful for
 instances such as I<not> indenting the first paragraph in a section.
 
     'indent' => 0,  # default set in new() is 2ems
@@ -700,7 +728,8 @@ This implements the main body of the algorithm; it turns a list of nodes
 =cut
 
 sub _init_nodelist { # Overridden by XS, same name in XS
-    shift->{'activeNodes'} = [
+    my $self = shift;
+    $self->{'activeNodes'} = [
         Text::KnuthPlass::Breakpoint->new(
 	    'position' => 0,
             'demerits' => 0,
@@ -865,8 +894,7 @@ sub _mainloop {  # same name in XS
                     #       ($_ == $active) ? ($newnode, $active) : ($_)
                     #} @{$self->{'activeNodes'}}
                     # ];
-                }
-                else { 
+                } else { 
                     warn  "After\n" if DEBUG;
                     push @{$self->{'activeNodes'}}, $newnode;
                 }
