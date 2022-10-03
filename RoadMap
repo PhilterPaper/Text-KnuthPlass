@@ -14,13 +14,12 @@ https://github.com/bramstein/typeset/ and is May 2012 (plus some later minor
 updates through April 2016), which is about a year after the last (original) 
 Perl release (Text::KnuthPlass), March 2011.  It is possible that there are 
 some updates to the JS version that should be considered for adoption in the 
-Perl version, and maybe some bug fixes. On the chance that some bugs below are 
-fixed, perhaps studying "typeset" ought to be a high priority!
+Perl version, and maybe some bug fixes. 
 
 Keep in mind that this module will be used for other than PDF generation, so
 don't hard-code in anything that requires PDF facilities, or forces lengths to 
-be in (Big) points. Non-PDF examples should be given (probably fixed-pitch 
-text). Don't depend on charspace() and wordspace() or other PDF items.
+be in (Big) points. Don't depend on charspace() and wordspace() or other PDF 
+items. See examples/text/.
 
 
 Deal with various forms of hyphens and dashes in the original text, to not 
@@ -97,6 +96,8 @@ A general means is needed to set parameters, such as
  * adjust handling of glue (space) after punctuation
  * allow punctuation "hanging over" past the right margin (or left margin for
    RTL languages?)
+
+Test "center" style and implement left (ragged right) and right aligned.
 
 A more general means of describing a column than an array of line lengths 
 (define the outline of the paragraph built with a simple path of lines, arcs, 

@@ -581,7 +581,8 @@ sub break_text_into_nodes {
     my @nodes;
     my @words = split /\s+/, $text;
 
-    my $style = $opts{'style'} if defined $opts{'style'};
+    my $style;
+    $style = $opts{'style'} if defined $opts{'style'};
     $style ||= "justify"; # default
 
     $self->{'emwidth'}      = $self->measure()->("M");

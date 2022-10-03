@@ -46,7 +46,7 @@ my $pdf = PDF::Builder->new('compress' => 'none');
 #my $lineWidth = 400; # Points. get different wrapping effects by varying
 my $lineWidth = $pageDim[2]-2*$xleft; # Points, left margin = right margin
 my ($page, $ytop);
-open $page, ">$outfile.txt" or die "unable to open output file";
+open $page, ">", "$outfile.txt" or die "unable to open output file";
 my $start = 1; # empty file at this point
 my $end   = 0; # special call to fresh_page to finish out bottom
 
@@ -314,12 +314,14 @@ sub text_center {
     my $empty = $pageDim[2]-2*$xleft-length($string);
     $ytop--;
     print $page ' ' x ($xleft+round($empty/2)) . $string . "\n";
+    return;
 }
 
 sub text {  # left justified
     my ($string) = @_;
     $ytop--;
     print $page ' ' x $xleft . $string . "\n";
+    return;
 }
 
 sub text_right {  # right-justified
@@ -327,6 +329,7 @@ sub text_right {  # right-justified
     my $empty = $pageDim[2]-2*$xleft-length($string);
     $ytop--;
     print $page ' ' x ($xleft+$empty) . $string . "\n";
+    return;
 }
 
 # --------------------------
@@ -514,7 +517,6 @@ sub get_spaces {
 
     $const = 0; # ignore for now
     my @list = (); # array of space counts at each glue, to return
-    my $node;
     my $node_count = @{ $line->{'nodes'} };
     my $node_num = 0;
     my $glue_num = 0; # current glue number index
@@ -528,7 +530,7 @@ sub get_spaces {
                                    # width output, s/b >= 0
 
     # for nodes in line, build various glue/space-related counters and lists
-    for $node (@{$line->{'nodes'}}) {
+    for my $node (@{$line->{'nodes'}}) {
         if ($node->isa("Text::KnuthPlass::Glue")) {
 	    # ignore if glue after last box
 	    # we're also not going to examine box's text, but it's at the end
@@ -648,7 +650,7 @@ sub get_spaces {
         # one space per glue, and we're done
         # note that some lines may overflow right margin, KP is a little
         # flaky when trying to handle constant width fonts or text
-        for $node (@{$line->{'nodes'}}) {
+        for my $node (@{$line->{'nodes'}}) {
             if ($node->isa("Text::KnuthPlass::Glue")) {
 	        push @list, 1;
 	    }

@@ -107,7 +107,7 @@ $t = Text::KnuthPlass->new(
 $para = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished."; 
 
 @lines = $t->typeset($para);
-sub out_text {
+sub out_text6 {
     my @lines = @_;
     $output = "";
     for my $line (@lines) {
@@ -127,7 +127,7 @@ sub out_text {
 }
 # note: when properly filled out with spaces, the indicated line lengths are
 # fully filled.
-is(out_text(@lines), <<EOF, "Indent and variable line lengths");
+is(out_text6(@lines), <<EOF, "Indent and variable line lengths");
 In olden times when 
 wishing still 
 helped one, 

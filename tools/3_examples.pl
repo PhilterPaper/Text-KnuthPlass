@@ -70,6 +70,7 @@ my (@example_list, @example_results);
   push @example_results, "create Triangle.pdf, showing some shaping using line lengths.";
  }
 
+ $test_type = 'text';   # do character-based, too
  if ($TH_installed && $test_type eq 'text') {
   push @example_list, "text/KP.pl";
   # output location when run tools/3_examples.pl
@@ -125,7 +126,7 @@ for ($i=0; $i<scalar(@example_list); $i++) {
         $arg = '';
     }
     print "\n=== Running test examples/$file $arg\n";
-    print $desc;
+    print "$desc\n";
 
     system("perl examples/$file $arg");
 
