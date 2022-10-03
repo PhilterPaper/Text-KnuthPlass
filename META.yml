@@ -11,7 +11,7 @@ build_requires:
   Text::Hyphen: 0
   JSON::Syck: 0
 configure_requires:
-  Module::Build: 0.36
+  Module::Build: 0.42
 generated_by: 'Module::Build version 0.3623'
 license: Perl
 meta-spec:

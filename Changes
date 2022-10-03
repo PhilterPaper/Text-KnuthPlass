@@ -1,8 +1,19 @@
+2022-10-03  1.08  (Phil M Perry)   UNRELEASED
+
+* test 'center' style, implement (ragged) 'left' and 'right'. defaults to
+  'justify'.
+
+* look at fixed pitch/char hyphenated word overhangs right margin (#10)
+
+* irregular column shapes w/ leading, HS wrapper
+
+* new and better hyphenation library (#9)
+
 2022-10-03  1.07  (Phil M Perry)
 
   lib/Text/KnuthPlass.xs, lib/Text/KnuthPlass.pm, t/01-nodes.t
    Fix mishandling of line length array in XS code (was only looking at first 
-    two elements). Remove elements as used, and return to application.
+    two elements), #7. Remove elements as used, and return to application.
 
   examples/text/KP.pl (new), examples/text/Flatland.pl (new), 
     examples/text/Triangle.pl (new), MANIFEST, tools/3_examples.pl

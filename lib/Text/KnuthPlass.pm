@@ -6,7 +6,7 @@ use warnings;
 use strict;
 use List::Util qw/min/;
 
-our $VERSION = '1.06'; # VERSION
+our $VERSION = '1.07'; # VERSION
 our $LAST_UPDATE = '1.07'; # manually update whenever file is edited
 
 use Data::Dumper;
