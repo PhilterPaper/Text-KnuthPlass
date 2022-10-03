@@ -1,7 +1,7 @@
 package Text::KnuthPlass;
 require XSLoader;
 use constant DEBUG => 0;
-use constant purePerl => 1; # 1: do NOT load XS routines
+use constant purePerl => 0; # 1: do NOT load XS routines
 use warnings;
 use strict;
 use List::Util qw/min/;
@@ -727,21 +727,6 @@ This implements the main body of the algorithm; it turns a list of nodes
 
 =cut
 
-sub _init_nodelist { # Overridden by XS, same name in XS
-    my $self = shift;
-    $self->{'activeNodes'} = [
-        Text::KnuthPlass::Breakpoint->new(
-	    'position' => 0,
-            'demerits' => 0,
-            'ratio' => 0,
-            'line' => 0,
-            'fitnessClass' => 0,
-            'totals' => { 'width' => 0, 'stretch' => 0, 'shrink' => 0}
-        )
-    ];
-    return;
-}
-
 sub break {
     my ($self, $nodes) = @_;
     $self->{'sum'} = {'width' => 0, 'stretch' => 0, 'shrink' => 0 };
@@ -772,6 +757,73 @@ sub break {
     return @retval;
 }
 
+sub _computeCost {  # _compute_cost() in XS
+    my ($self, $start, $end, $active, $currentLine, $nodes) = @_;
+    warn  "Computing cost from $start to $end\n" if DEBUG;
+    warn sprintf "Sum width: %f\n", $self->{'sum'}{'width'} if DEBUG;
+    warn sprintf "Total width: %f\n", $self->{'totals'}{'width'} if DEBUG;
+    my $width = $self->{'sum'}{'width'} - $active->totals()->{'width'};
+    my $stretch = 0; my $shrink = 0;
+    my $linelength = $currentLine <= @{$self->linelengths()}? 
+                        $self->{'linelengths'}[$currentLine-1]:
+                        $self->{'linelengths'}[-1];
+   #$linelength -= $self->{'const'}; # allow space for split word hyphen
+                                     # allow for in renderer
+
+    warn "Adding penalty width" if($nodes->[$end]->is_penalty()) and DEBUG;
+    warn sprintf "Width %f, linelength %f\n", $width, $linelength if DEBUG;
+
+    if ($width < $linelength) {
+        $stretch = $self->{'sum'}{'stretch'} - $active->totals()->{'stretch'};
+        warn sprintf "Stretch %f\n", $stretch if DEBUG;
+        if ($stretch > 0) {
+            return ($linelength - $width) / $stretch;
+        } else { return $self->infinity(); }
+    } elsif ($width > $linelength) {
+        $shrink = $self->{'sum'}{'shrink'} - $active->totals()->{'shrink'};
+        warn sprintf "Shrink %f\n", $shrink if DEBUG;
+        if ($shrink > 0) {
+            return ($linelength - $width) / $shrink;
+        } else { return $self->infinity(); }
+    } else { return 0; }
+}
+
+sub _computeSum {  # _compute_sum() in XS
+    my ($self, $index, $nodes) = @_;
+    my $result = { 
+	'width' => $self->{'sum'}{'width'}, 
+        'stretch' => $self->{'sum'}{'stretch'}, 
+	'shrink' => $self->{'sum'}{'shrink'}
+    };
+    for ($index..$#$nodes) {
+        if ($nodes->[$_]->isa("Text::KnuthPlass::Glue")) {
+            $result->{'width'} += $nodes->[$_]->width();
+            $result->{'stretch'} += $nodes->[$_]->stretch();
+            $result->{'shrink'} += $nodes->[$_]->shrink();
+        } elsif ($nodes->[$_]->isa("Text::KnuthPlass::Box") or
+                 ($nodes->[$_]->is_penalty() and $nodes->[$_]->penalty() ==
+                  -$self->infinity() and $_ > $index)) {
+	    last;
+        }
+    }
+    return $result;
+}
+
+sub _init_nodelist { # Overridden by XS, same name in XS
+    my $self = shift;
+    $self->{'activeNodes'} = [
+        Text::KnuthPlass::Breakpoint->new(
+	    'position' => 0,
+            'demerits' => 0,
+            'ratio' => 0,
+            'line' => 0,
+            'fitnessClass' => 0,
+            'totals' => { 'width' => 0, 'stretch' => 0, 'shrink' => 0}
+        )
+    ];
+    return;
+}
+
 # same name in XS, but has quite a bit of code
 sub _cleanup { return; } 
 
@@ -779,15 +831,15 @@ sub _active_to_breaks { # Overridden by XS, same name in XS
     my $self = shift;
     return unless @{$self->{'activeNodes'}};
     my @breaks;
-    my $tmp = Text::KnuthPlass::Breakpoint->new('demerits' => ~0);
+    my $best = Text::KnuthPlass::Breakpoint->new('demerits' => ~0);
     for (@{$self->{'activeNodes'}}) { 
-	$tmp = $_ if $_->demerits() < $tmp->demerits();
+	$best = $_ if $_->demerits() < $best->demerits();
     }
-    while ($tmp) {
-        push @breaks, { 'position' => $tmp->position(),
-                        'ratio' => $tmp->ratio()
+    while ($best) {
+        push @breaks, { 'position' => $best->position(),
+                        'ratio' => $best->ratio()
                       };
-        $tmp = $tmp->previous();
+        $best = $best->previous();
     }
     return @breaks;
 }
@@ -828,14 +880,15 @@ sub _mainloop {  # same name in XS
                 $badness = 100 * $ratio**3;
                 warn  "Badness is $badness\n" if DEBUG;
                 if ($node->is_penalty() and $node->penalty() > 0) {
-                    $demerits = ($self->demerits()->{'line'} + $badness +
-                        $node->penalty())**2;
+                    $demerits = $self->demerits()->{'line'} + $badness +
+                        $node->penalty();
                 } elsif ($node->is_penalty() and $node->penalty() != -$self->infinity()) {
-                    $demerits = ($self->demerits()->{'line'} + $badness -
-                        $node->penalty())**2;
+                    $demerits = $self->demerits()->{'line'} + $badness -
+                        $node->penalty();
                 } else {
-                    $demerits = ($self->demerits()->{'line'} + $badness)**2;
+                    $demerits = $self->demerits()->{'line'} + $badness;
                 }
+		$demerits *= $demerits; # demerits**2
 
                 if ($node->is_penalty() and $nodes->[$active->position()]->is_penalty()) {
                     $demerits += $self->demerits()->{'flagged'} *
@@ -868,6 +921,7 @@ sub _mainloop {  # same name in XS
                 $active->line() >= $currentLine;
         }
         warn  "Post inner loop\n" if DEBUG;
+
         $tmpSum = $self->_computeSum($index, $nodes);
         for (0..3) { 
 	    my $c = $candidates[$_];
@@ -903,58 +957,6 @@ sub _mainloop {  # same name in XS
         } # fitness class 0..3 loop
     } # while $active loop
     return;
-}
-
-sub _computeCost {  # _compute_cost() in XS
-    my ($self, $start, $end, $active, $currentLine, $nodes) = @_;
-    warn  "Computing cost from $start to $end\n" if DEBUG;
-    warn sprintf "Sum width: %f\n", $self->{'sum'}{'width'} if DEBUG;
-    warn sprintf "Total width: %f\n", $self->{'totals'}{'width'} if DEBUG;
-    my $width = $self->{'sum'}{'width'} - $active->totals()->{'width'};
-    my $stretch = 0; my $shrink = 0;
-    my $linelength = $currentLine <= @{$self->linelengths()}? 
-                        $self->{'linelengths'}[$currentLine-1]:
-                        $self->{'linelengths'}[-1];
-   #$linelength -= $self->{'const'}; # allow space for split word hyphen
-                                     # allow for in renderer
-
-    warn "Adding penalty width" if($nodes->[$end]->is_penalty()) and DEBUG;
-    $width += $nodes->[$end]->width() if $nodes->[$end]->is_penalty();
-    warn sprintf "Width %f, linelength %f\n", $width, $linelength if DEBUG;
-    if ($width < $linelength) {
-        $stretch = $self->{'sum'}{'stretch'} - $active->totals()->{'stretch'};
-        warn sprintf "Stretch %f\n", $stretch if DEBUG;
-        if ($stretch > 0) {
-            return ($linelength - $width) / $stretch;
-        } else { return $self->infinity(); }
-    } elsif ($width > $linelength) {
-        $shrink = $self->{'sum'}{'shrink'} - $active->totals()->{'shrink'};
-        warn sprintf "Shrink %f\n", $shrink if DEBUG;
-        if ($shrink > 0) {
-            return ($linelength - $width) / $shrink;
-        } else { return $self->infinity(); }
-    } else { return 0; }
-}
-
-sub _computeSum {  # _compute_sum() in XS
-    my ($self, $index, $nodes) = @_;
-    my $result = { 
-	'width' => $self->{'sum'}{'width'}, 
-        'stretch' => $self->{'sum'}{'stretch'}, 
-	'shrink' => $self->{'sum'}{'shrink'}
-    };
-    for ($index..$#$nodes) {
-        if ($nodes->[$_]->isa("Text::KnuthPlass::Glue")) {
-            $result->{'width'} += $nodes->[$_]->width();
-            $result->{'stretch'} += $nodes->[$_]->stretch();
-            $result->{'shrink'} += $nodes->[$_]->shrink();
-        } elsif ($nodes->[$_]->isa("Text::KnuthPlass::Box") or
-                 ($nodes->[$_]->is_penalty() and $nodes->[$_]->penalty() ==
-                  -$self->infinity() and $_ > $index)) {
-	    last;
-        }
-    }
-    return $result;
 }
 
 =head2 @lines = $t->breakpoints_to_lines(\@breakpoints, \@nodes)

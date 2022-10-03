@@ -1,6 +1,6 @@
-2022-10-02  1.07  (Phil M Perry)   UNRELEASED
+2022-10-03  1.07  (Phil M Perry)
 
-* lib/Text/KnuthPlass.xs, lib/Text/KnuthPlass.pm XS NOT YET DONE
+  lib/Text/KnuthPlass.xs, lib/Text/KnuthPlass.pm, t/01-nodes.t
    Fix mishandling of line length array in XS code (was only looking at first 
     two elements). Remove elements as used, and return to application.
 

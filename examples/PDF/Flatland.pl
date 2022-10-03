@@ -40,7 +40,7 @@ my $purePerl = 1; # 0: use XS, 1: use Perl  DOESN'T WORK
 
 my $outfile = 'Flatland';
 my $line_dump = 0;  # debug related
-my $do_margin_lines = 1;  # debug related
+my $do_margin_lines = 0;  # debug related
 my $raggedRight = 0; # 0 = flush right, 1 = ragged right
 my $indentAmount = 2; # ems to indent first line of paragraph. - outdents
 #                       upper left corner of paragraph
