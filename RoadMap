@@ -14,13 +14,13 @@ https://github.com/bramstein/typeset/ and is May 2012 (plus some later minor
 updates through April 2016), which is about a year after the last (original) 
 Perl release (Text::KnuthPlass), March 2011.  It is possible that there are 
 some updates to the JS version that should be considered for adoption in the 
-Perl version, and maybe some bug fixes. 
+Perl version, and maybe some bug fixes. KP appears to be working OK, after
+being compared to the latest typeset, so we may be done with that.
 
 Keep in mind that this module will be used for other than PDF generation, so
 don't hard-code in anything that requires PDF facilities, or forces lengths to 
 be in (Big) points. Don't depend on charspace() and wordspace() or other PDF 
 items. See examples/text/.
-
 
 Deal with various forms of hyphens and dashes in the original text, to not 
 get a - after them if break is made right after that character. Not sure if
@@ -46,7 +46,7 @@ PDF::Builder::UniWrap may be useful in determining can/can't/may split points,
 Are Non-breaking spaces handled correctly? NBSP, ZWNBSP, WJ,CGJ prohibit a
 break immediately before or after, while ZWSP permits a break, as does x20.
 Needs testing, if nothing else. Knuth-Plass 1982 paper discusses such things
-extensively.
+extensively. See also Unicode TR 14.
 
 East and Southeast Asian language line splitting is complicated, while Western
 languages usually can split on spaces and hyphens/dashes. Language-dependency?
@@ -123,11 +123,17 @@ purposes), forbid/suggest ligatures. This might be embedded KP commands in the
 text stream (marked by non-printable control bytes before and after?), or 
 chunks of text within an array of hashes. Note that leading will need to be 
 adjusted on the fly, according to font size changes, so with non-rectangular 
-column layouts line lengths will change. Support HarfBuzz::Shaper usage before 
-or after KP (probably after).
+column layouts line lengths will change. 
 
-Separate out PDF-based examples under examples/ as examples/PDF/. Add some 
-non-PDF examples in the future.
+Support HarfBuzz::Shaper usage before or after KP (probably after). HS 
+interaction with KP can be complicated: kerning and ligatures change word 
+length, but fragments (syllables) due to word splitting may cancel kern or 
+ligature and lengthen word. Hyphenation depends on individual letters, so must 
+be done before ligatures. KP returns fragments, and expects them to be glued 
+back together when rendering, leaving kerning and ligatures a problem. May need 
+to carry various forms of a word around during KP to use proper lengths, but 
+assemble them correctly when rendering. We don't want to end up excessively 
+stretching a line due to fragements shrinking during kerning and ligatures.
 
 Word Splitting (Hyphenation points) improvements. Some of these may be best
 handled by an improved hyphenation support (built on Tex::Hyphen or 
@@ -162,4 +168,6 @@ Text::Hyphen) but still need to support such legacy hyphenation modules.
    'solid'=>1 (default 0) to set "solid". One punctuation (not letter, accented
    letter, digit, or any kind of space) at split point gets length of 0, with
    actual length transferred to the glue following it. Want only one punct.
-   mark, not multiple ones, shoved into margin.
+   mark, not multiple ones, shoved into margin. A.k.a. "hanging punctuation".
+   Also slight hang on left margin, and letters overhanging margins for
+   optical alignment.
