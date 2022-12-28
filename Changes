@@ -1,4 +1,4 @@
-2022-10-03  1.08  (Phil M Perry)   UNRELEASED
+2022-12-28  1.08  (Phil M Perry)   UNRELEASED
 
 * test 'center' style, implement (ragged) 'left' and 'right'. defaults to
   'justify'.
@@ -8,6 +8,12 @@
 * irregular column shapes w/ leading, HS wrapper
 
 * new and better hyphenation library (#9)
+
+  CONTRIBUTING.md (new), README.md, MANIFEST
+   Add badges to README, add CONTRIBUTING
+
+  xt/pod.t, xt/pod-coverage.t, MANIFEST, tools/2_t-tests.pl
+   Moved two author tests out of t/ regular testing into xt/ directory
 
 2022-10-03  1.07  (Phil M Perry)
 

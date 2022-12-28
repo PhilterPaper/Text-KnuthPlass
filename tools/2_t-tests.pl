@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 # VERSION
-our $LAST_UPDATE = '1.07'; # manually update whenever code is changed
+our $LAST_UPDATE = '1.08'; # manually update whenever code is changed
 
 # command line flags, mutually exclusive:
 # -raw   show full output of each t-test run
@@ -18,8 +18,8 @@ my @test_list = (
 	{ 'file' => "00-load",       'flags' => '-T', },
 	{ 'file' => "01-nodes",      'flags' => '',   },
 	{ 'file' => "02-javascript", 'flags' => '',   },
-	{ 'file' => "pod",           'flags' => '-T', },
-	{ 'file' => "pod-coverage",  'flags' => '',   },
+#       { 'file' => "pod",           'flags' => '-T', }, # --> xt/
+#       { 'file' => "pod-coverage",  'flags' => '',   }, # --> xt/
                 );
 # override full list above, and run just one or two tests
 #@test_list = qw( 02-javascript );

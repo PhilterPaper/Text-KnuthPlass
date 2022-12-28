@@ -7,7 +7,7 @@ use strict;
 use List::Util qw/min/;
 
 our $VERSION = '1.07'; # VERSION
-our $LAST_UPDATE = '1.07'; # manually update whenever file is edited
+our $LAST_UPDATE = '1.08'; # manually update whenever file is edited
 
 use Data::Dumper;
 
@@ -127,7 +127,7 @@ set the shrinkability of spaces to 0 in the new() call:
     my $typesetter = Text::KnuthPlass->new(
 	'indent' => 2, # two characters,
         # set space shrinkability to 0
-	'space' => { 'width' => 3, 'stretch' => 6, 'shrink' -> 0 },
+	'space' => { 'width' => 3, 'stretch' => 6, 'shrink' => 0 },
 	# can let 'measure' default to character count
 	# default line lengths to 78 characters
     );

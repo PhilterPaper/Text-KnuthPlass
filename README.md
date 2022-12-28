@@ -1,5 +1,9 @@
 # Text-KnuthPlass
 
+[![Open Issues](https://img.shields.io/github/issues/PhilterPaper/Text-KnuthPlass)](https://github.com/PhilterPaper/Text-KnuthPlass/issues)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/PhilterPaper/Text-KnuthPlass/graphs/commit-activity)
+
 `Text::KnuthPlass` is a Perl and XS (C) implementation of the well-known 
 Knuth-Plass TeX paragraph-shaping (a.k.a. line-breaking) algorithm, as created
 by Donald E. Knuth and Michael F. Plass in 1981.
