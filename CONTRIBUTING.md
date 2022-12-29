@@ -44,13 +44,13 @@ doesn't fit in with what's going on with the rest of the Text::KnuthPlass projec
 You are free to try contributing anything you want, or even to fork the project 
 if you don't like the direction it's taking (that's how PDF::Builder split off 
 from PDF::API2). Keeping in touch and coordinating with us ensures that your 
-work won't be wasted. If you have something dependent on PDF::Builder 
+work won't be wasted. If you have something dependent on Text::KnuthPlass 
 functionality, but it doesn't fit our roadmap for core functionality, we may 
 suggest that you release it as a separate package on CPAN (dependent on 
-PDF::Builder), or as a new sub-package under Text::KnuthPlass (e.g., in the 
+Text::KnuthPlass), or as a new sub-package under Text::KnuthPlass (e.g., in the 
 manner of PDF::Builder::Ladder under PDF::Builder), under either our ownership 
 or yours.
 
-Good luck, and best wishes using and helping with PDF::Builder!
+Good luck, and best wishes using and helping with Text::KnuthPlass!
 
 December, 2022
