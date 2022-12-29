@@ -114,7 +114,12 @@ code.
 There are many copies of the Knuth-Plass paper/thesis, as well as discussions
 and explanations of the algorithm, floating around on the Web, so I will leave
 it to you to find some examples. Just the keywords _Knuth_ and _Plass_ should
-get you there.
+get you there. Rather than my listing everything here, pay a 
+[visit](https://www.catskilltech.com/utils/show.php?link=paragraph-shaping#resources) 
+to my discussion on the subject.
+There is also a list of 
+[criteria](https://www.catskilltech.com/utils/show.php?link=paragraph-shaping#criteria) 
+of what makes good paragraph shaping.
 
 There is also a refactored (still Javascript) version of
 `typeset`, intended for use as a library, in `frobnitzem/typeset`.
