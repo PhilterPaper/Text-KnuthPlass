@@ -2,10 +2,10 @@
 
 **Working on your first Pull Request?** You can learn how from this *free* series [How to Contribute to an Open Source Project on GitHub](https://kcd.im/pull-request) 
 
-We would appreciate the community around us chipping in with code, tests, 
-documentation, and even just bug reports and feature requests. It's better 
-knowing what users of Text::KnuthPlass want and need, than for us to guess. It's 
-not good to spend a lot of time working on something that no one is interested 
+We would appreciate the community around us chipping in with code, tests,
+documentation, and even just bug reports and feature requests. It's better
+knowing what users of Text::KnuthPlass want and need, than for us to guess. It's
+not good to spend a lot of time working on something that no one is interested
 in!
 
 You can contribute to the discussion by posting bug reports, feature requests, 
