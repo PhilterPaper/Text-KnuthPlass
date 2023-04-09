@@ -1,4 +1,4 @@
-2022-12-28  1.08  (Phil M Perry)   UNRELEASED
+2023-04-08  1.08  (Phil M Perry)   UNRELEASED
 
 * test 'center' style, implement (ragged) 'left' and 'right'. defaults to
   'justify'.
@@ -8,6 +8,12 @@
 * irregular column shapes w/ leading, HS wrapper
 
 * new and better hyphenation library (#9)
+
+* examples/PDF/Article.pl
+   Add "Article" example (PDF output only), using Text::KnuthPlass and
+    the new PDF::Builder "column" capability.
+
+  README.md  update to point to new Home Page structure on catskilltech.com
 
   CONTRIBUTING.md (new), README.md, MANIFEST
    Add badges to README, add CONTRIBUTING
