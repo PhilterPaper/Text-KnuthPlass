@@ -15,7 +15,8 @@ observations, etc. to the [GitHub issues area](https://github.com/PhilterPaper/T
 Please also read any RoadMaps or road map-related issues to get an idea of 
 where we would like for 
 Text::KnuthPlass to be heading, and may give you an idea of where you could
-usefully contribute. Don't be afraid to discuss or propose taking Text::KnuthPlass
+usefully contribute. Don't be afraid to discuss or propose taking 
+Text::KnuthPlass
 off in a direction not in any RoadMap -- the worst that could happen is that
 we say, "thanks, but no thanks."
 
@@ -31,8 +32,9 @@ effort if we decline the offer.
 ## Do NOT...
 
 Do NOT under ANY circumstances open a PR (Pull Request) to **report a _bug_.** 
-It is a waste of both _your_ and _our_ time and effort. Open a regular ticket
-(issue), and attach a Perl (.pl) program illustrating the problem, if possible.
+It is a waste of both _your_ and _our_ time and effort. Instead, open a regular 
+ticket (_issue_) in GitHub, and attach a Perl (.pl) program illustrating the 
+problem, if possible.
 If you believe that you have a program patch (i.e., a permanent change to the
 code), and offer to share it as a PR, we may give the go-ahead. Unsolicited PRs
 may be closed without further action.
@@ -53,4 +55,4 @@ or yours.
 
 Good luck, and best wishes using and helping with Text::KnuthPlass!
 
-December, 2022
+May, 2023

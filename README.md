@@ -1,5 +1,24 @@
 # Text-KnuthPlass
 
+A line-splitting (paragraph shaping) library for Perl.
+
+## What is it?
+
+Text::KnuthPlass uses the famed Knuth-Plass line-splitting algorithm (used in 
+**TeX** and **LaTeX**) to break up a text string into a properly "shaped" 
+paragraph. Certain rules are followed to not only efficiently pack the 
+paragraph into a minimal number of lines, but also to minimize hyphenation, 
+keep line density fairly constant, and take other measures to ensure that the 
+output is typographically "nice looking". It works with both fixed-width fonts 
+and with proportional (variable-width) fonts, where you supply the font library 
+that calculates word lengths (e.g., PDF::Builder's _advancewidth()_ method). 
+Text::KnuthPlass permits varying line lengths, to allow text to flow around 
+other objects, such as illustrations. It also makes use of (by default) 
+Text::Hyphen, a library to indicate where words can be split (for hyphenation 
+purposes).
+
+See also this blog on [Paragraph Shaping](https://www.catskilltech.com/utils/show.php?link=paragraph-shaping) for a deeper dive into the subject.
+
 [Home Page](https://www.catskilltech.com/FreeSW/product/Text%2DKnuthPlass/title/Text%3A%3AKnuthPlass/freeSW_full), including Documentation and Examples.
 
 [![Open Issues](https://img.shields.io/github/issues/PhilterPaper/Text-KnuthPlass)](https://github.com/PhilterPaper/Text-KnuthPlass/issues)
@@ -81,11 +100,12 @@ Bug tracking is via
 (you will need a GitHub account to create a ticket, or contribute to a
 discussion, but anyone can read tickets.) The old RT ticket system is closed.
 
-Do NOT under ANY circumstances open a PR (Pull Request) to report a _bug_. It
-is a waste of both your and our time and effort. A PR is an offering of code
-that you think belongs permanently in the product. Instead, open a regular
-ticket (issue), and attach a Perl (.pl) program illustrating the problem, if
-possible. If you believe that you have a good program patch, and offer to share
+Do NOT under ANY circumstances open a PR (Pull Request) to **report a _bug_**. 
+It is a waste of both _your_ and _our_ time and effort. A PR is an offering of 
+code that you think belongs **permanently** in the product. Instead, simply 
+open a regular ticket (_issue_) in GitHub, and attach a Perl (.pl) program 
+illustrating the problem, if possible. 
+If you believe that you have a good program patch, and offer to share
 it as a PR, we may give the go-ahead. Unsolicited PRs may be closed without
 further action.
 
@@ -95,7 +115,7 @@ This product is licensed under the Perl license. You may redistribute under
 the GPL license, if desired, but you will have to add a copy of that license
 to your distribution, per its terms.
 
-(c)copyright 2020-2022 by Phil M Perry;
+(c)copyright 2020-2023 by Phil M Perry;
 earlier copyrights held by Simon Cozens
 
 ## History
