@@ -10,6 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: sudo apt update
-      - run: sudo apt install libmodule-build-perl
+      - run: sudo apt install libmodule-build-perl libclass-accessor-perl
       - run: perl ./Build.PL
       - run: ./Build test TEST_VERBOSE=1
