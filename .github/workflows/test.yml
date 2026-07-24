@@ -8,5 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - run: sudo apt install Module-Build
       - run: perl Build.PL
       - run: make test TEST_VERBOSE=1
