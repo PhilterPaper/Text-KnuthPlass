@@ -11,5 +11,5 @@ jobs:
       - uses: actions/checkout@v2
       - run: sudo apt update
       - run: sudo apt install libmodule-build-perl
-      - run: perl Build.PL
-      - run: Build test TEST_VERBOSE=1
+      - run: perl ./Build.PL
+      - run: ./Build test TEST_VERBOSE=1
