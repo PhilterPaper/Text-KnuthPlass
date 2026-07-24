@@ -6,10 +6,9 @@ jobs:
   full-ubuntu:
     name: Full_Ubuntu
     runs-on: ubuntu-latest
-# disable for the time being, as can't find Module::Build
     steps:
       - uses: actions/checkout@v2
       - run: sudo apt update
-      - run: sudo apt install libmodule-build-perl libclass-accessor-perl
+      - run: sudo apt install libmodule-build-perl libclass-accessor-perl libtext-hyphen
       - run: perl ./Build.PL
-      - run: ./Build test TEST_VERBOSE=1
+      - run: ./Build test
