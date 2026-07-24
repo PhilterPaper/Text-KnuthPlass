@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: sudo apt update
-      - run: sudo apt install libmodule-build-perl libclass-accessor-perl
+      - run: sudo apt install libmodule-build-perl libclass-accessor-perl libyaml-syck-perl
       - name: Install Perl dependencies
         run: |
           sudo apt-get update
