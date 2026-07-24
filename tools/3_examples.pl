@@ -68,6 +68,10 @@ my (@example_list, @example_results);
   push @example_list, "PDF/Triangle.pl";
   # output location when run tools/3_examples.pl
   push @example_results, "create Triangle.pdf, showing some shaping using line lengths.";
+
+#  push @example_list, "PDF/Article.pl";
+  # output location when run tools/3_examples.pl
+#  push @example_results, "an article from the original Javascript (Bram Stein's Typeset) examples.";
  }
 
  $test_type = 'text';   # do character-based, too

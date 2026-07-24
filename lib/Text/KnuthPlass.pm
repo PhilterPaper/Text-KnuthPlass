@@ -1,7 +1,7 @@
 package Text::KnuthPlass;
 require XSLoader;
 use constant DEBUG => 0;
-use constant purePerl => 0; # 1: do NOT load XS routines
+use constant purePerl => 0; # 0: run XS fast code, 1: do NOT load XS routines
 use warnings;
 use strict;
 use List::Util qw/min/;
@@ -13,6 +13,7 @@ use Data::Dumper;
 
 # disable XS usage for debug, etc.
 if (!purePerl) {
+print "Using XS library\n";
     eval { XSLoader::load("Text::KnuthPlass", $VERSION); } or die $@;
     # Or else there's a Perl version to fall back on
     #    does camelCase in Perl get automatically changed to camel_case?
@@ -247,7 +248,7 @@ and then moving right (or left) by the indicated amount.
 
     'indent' => 2,  # 2 character indentation
     'indent' => 2*$text->text_width('M'),  # 2 ems indentation
-    'indent' => -3,  # 3 character OUTdent
+    'indent' => -3,  # 3 character OUTdent, or "hanging indent"
 
 If the value is negative, a negative-width space Box is added. The overall line
 will be longer than other lines, by that amount. Again, your rendering code
@@ -299,7 +300,7 @@ words, or overflow into the right margin.
 The default value for I<infinity> is, as is customary in TeX, 10000. While this
 is a far cry from the real infinity, so long as it is substantially larger than
 any other demerit or penalty, it should take precedence in calculations. Both
-positive and negative C<inifinity> are used in the code for various purposes,
+positive and negative C<infinity> are used in the code for various purposes,
 including a C<+inf> penalty for something absolutely forbidden, and C<-inf> for 
 something absolutely required (such as a line break at the end of a paragraph).
 
@@ -430,7 +431,7 @@ the original Knuth-Plass paper in "Digital Typography".
 
 Why I<typeset> rather than something like I<linesplit>? Per 
 L</ACKNOWLEDGEMENTS>, this code is ported from the Javascript product 
-B<typeset>.
+B<typeset>, written by Bram L. Stein (bramstein/typeset on GitHub).
 
 This method is a thin wrapper around the three methods below.
 
@@ -785,7 +786,7 @@ sub _computeCost {  # _compute_cost() in XS
         warn sprintf "Shrink %f\n", $shrink if DEBUG;
         if ($shrink > 0) {
             return ($linelength - $width) / $shrink;
-        } else { return $self->infinity(); }
+        } else { return -$self->infinity(); }
     } else { return 0; }
 }
 

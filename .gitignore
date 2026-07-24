@@ -18,3 +18,5 @@ pod2htmd.tmp
 /test.yml.xx
 # ignore related packages
 /others/*
+# ignore temporaries
+*.txt

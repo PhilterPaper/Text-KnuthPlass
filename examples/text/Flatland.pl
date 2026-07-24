@@ -40,7 +40,7 @@ use List::Util qw(max);
 # flag to replace fancy punctuation by ASCII characters
 my $use_ASCII = 1;
 # force use of pure Perl version (not XS), if value 1
-my $purePerl = 1;
+my $purePerl = 1; # 0: use XS, 1: use Perl  DOESN'T WORK, ALWAYS USES XS!
 
 my $do_margin_lines = 1;  # draw vertical lines indicating margins
 my $outfile = 'T_Flatland';

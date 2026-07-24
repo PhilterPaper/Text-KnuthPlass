@@ -14,7 +14,7 @@ use POSIX qw/ceil/;
 # flag to replace fancy punctuation by ASCII characters
 my $use_ASCII = 0;
 # force use of pure Perl code
-my $purePerl = 1; # 0: use XS, 1: use Perl  DOESN'T WORK
+my $purePerl = 1; # 0: use XS, 1: use Perl  DOESN'T WORK, ALWAYS USES XS!
 
 my $outfile = 'KP';
 my $line_dump = 0;  # debug related

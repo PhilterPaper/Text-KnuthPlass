@@ -72,7 +72,7 @@ NV _compute_cost(Text_KnuthPlass self, IV start, IV end, Breakpoint* a,
         if (shrink > 0) { 
             return (linelength - width) / shrink;
         } else {
-            return infinity;
+            return -infinity;
         }
     } else { return 0; }
 }
