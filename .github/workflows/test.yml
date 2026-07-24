@@ -7,8 +7,8 @@ jobs:
     name: Full_Ubuntu
     runs-on: ubuntu-latest
 # disable for the time being, as can't find Module::Build
-#    steps:
-#      - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 #      - run: sudo apt install Module-Build-perl
 #      - run: perl Build.PL
 #      - run: make test TEST_VERBOSE=1
