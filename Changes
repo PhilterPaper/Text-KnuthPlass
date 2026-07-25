@@ -1,9 +1,6 @@
 2026-07-23  1.08  (Phil M Perry)   UNRELEASED
 * = work in progress, no promises it will be in this release!
 
-* Fix Kwalitee Issues: add Perl Version to META.yml, add CONTRIBUTING.md,
-  add SECURITY.md with contact address, per Builder.
-
 * see https://github.com/sciurius/perl-SVGPDF/issues/5 regarding testing and
   examples on both API2 and Builder. have t-tests for PDF::Builder and 
   equivalent PDF::API2 tests. skip one if that PDF::* isn't installed, or run
@@ -27,6 +24,10 @@
     in PDF::Builder to be updated to use KP, while examples need to be updated
     to use column() (and thus require PDF::Builder!). May end up with two
     versions of PDF examples: current for API2, and with column() for Builder.
+
+  SECURITY.md (new), CONTRIBUTING.md (new), META.json, META.yml
+   Fix Kwalitee Issues: add CONTRIBUTING.md, add SECURITY.md with contact 
+    address, per Builder. Add minimum required Perl to META.
 
   lib/Text/KnuthPlass.xs, lib/Text/Knuthplass.pm
    Per fix in bramstein/typeset, computeCost end of paragraph gets -infinity

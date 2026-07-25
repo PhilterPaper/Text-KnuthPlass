@@ -123,8 +123,8 @@ earlier copyrights held by Simon Cozens
 Around 2009, Bram Stein wrote a Javascript implementation of the Knuth-Plass
 paragraph fitting algorithm named `typeset` (not to be confused with the
 language `typescript`, nor the publishing system `Typeset`). It may be found
-on GitHub in `bramstein/typeset`, and does not appear to be maintained (last
-update 2017). In 2011, Simon Cozens ported `typeset` to Perl, and called it
+on GitHub in `bramstein/typeset`, and appears to be sporadically maintained.
+In 2011, Simon Cozens ported `typeset` to Perl, and called it
 `Text::KnuthPlass`, maintaining it for only a short time. In 2020, Phil Perry
 took over maintenance of this package.
 
@@ -153,7 +153,7 @@ annotated listing in _TeX: The Program_. It's just a matter of finding the
 time to go through all these sources and extend `Text::KnuthPlass` in
 various ways.
 
-## An Example
+## Examples
 
 Find an example of using Text::KnuthPlass in `examples/PDF/Flatland.pl`,
 derived from the example in _typeset_. It

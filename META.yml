@@ -18,6 +18,10 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: Text-KnuthPlass
+no_index:
+  directory:
+    - t
+    - inc
 provides:
   Text::KnuthPlass:
     file: lib/Text/KnuthPlass.pm
@@ -34,7 +38,7 @@ provides:
     file: lib/Text/KnuthPlass.pm
   Text::KnuthPlass::Penalty:
     file: lib/Text/KnuthPlass.pm
-version: 1.05
+version: 1.08
 resources:
   bugtracker: https://github.com/PhilterPaper/Text-KnuthPlass/issues
   homepage: https://metacpan.org/pod/Text::KnuthPlass

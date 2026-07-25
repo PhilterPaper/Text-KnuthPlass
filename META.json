@@ -57,7 +57,7 @@
          "web" : "https://github.com/PhilterPaper/Text-KnuthPlass"
       }
    },
-   "version" : "1.05",
+   "version" : "1.08",
    "x_serialization_backend" : "JSON::PP version 4.06",
    "provides" : {
      "Text::KnuthPlass" : {
