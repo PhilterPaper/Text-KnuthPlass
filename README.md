@@ -34,7 +34,7 @@ where to split a line (possibly hyphenating a word in the process), while
 attempting to:
 
 * maintain text "tightness" within a reasonable, comfortably readable, range (neither jammed together nor excessively loose).
-* maintain fairly consistent text "tightness" (limited change from line to line).
+* maintain fairly consistent text "tightness" (limit change from line to line).
 * minimize the amount of hyphenation overall (words split at a line end).
 
 What is a stated objective of Knuth-Plass but I **don't** think this implementation directly does:
@@ -103,7 +103,7 @@ discussion, but anyone can read tickets.) The old RT ticket system is closed.
 Do NOT under ANY circumstances open a PR (Pull Request) to **report a _bug_**. 
 It is a waste of both _your_ and _our_ time and effort. A PR is an offering of 
 code that you think belongs **permanently** in the product. Instead, simply 
-open a regular ticket (_issue_) in GitHub, and attach a Perl (.pl) program 
+open a regular ticket (_issue_) in GitHub, and _attach_ a Perl (.pl.txt) program 
 illustrating the problem, if possible. 
 If you believe that you have a good program patch, and offer to share
 it as a PR, we may give the go-ahead. Unsolicited PRs may be closed without
@@ -115,7 +115,7 @@ This product is licensed under the Perl license. You may redistribute under
 the GPL license, if desired, but you will have to add a copy of that license
 to your distribution, per its terms.
 
-(c)copyright 2020-2023 by Phil M Perry;
+(c)copyright 2020-2026 by Phil M Perry;
 earlier copyrights held by Simon Cozens
 
 ## History

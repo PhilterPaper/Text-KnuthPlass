@@ -2,6 +2,7 @@ package Text::KnuthPlass;
 require XSLoader;
 use constant DEBUG => 0;
 use constant purePerl => 0; # 0: run XS fast code, 1: do NOT load XS routines
+    # settable purePerl option comes too late to be used
 use warnings;
 use strict;
 use List::Util qw/min/;
@@ -28,50 +29,57 @@ print "Using XS library\n";
 package Text::KnuthPlass::Element;
 use base 'Class::Accessor';
 __PACKAGE__->mk_accessors("width");
-sub new { 
-    my $self = shift; 
-    return bless { 'width' => 0, @_ }, $self; 
-}
-sub is_penalty { 
-    return shift->isa("Text::KnuthPlass::Penalty"); 
-}
-sub is_glue { 
-    return shift->isa("Text::KnuthPlass::Glue"); 
-}
-sub is_box { 
-    return shift->isa("Text::KnuthPlass::Box"); 
-}
+
+    sub new { 
+        my $self = shift; 
+        return bless { 'width' => 0, @_ }, $self; 
+    }
+
+    sub is_penalty { 
+        return shift->isa("Text::KnuthPlass::Penalty"); 
+    }
+
+    sub is_glue { 
+        return shift->isa("Text::KnuthPlass::Glue"); 
+    }
+
+    sub is_box { 
+        return shift->isa("Text::KnuthPlass::Box"); 
+    }
 
 package Text::KnuthPlass::Box; 
 use base 'Text::KnuthPlass::Element';
 __PACKAGE__->mk_accessors("value");
 
-sub _txt { # different from other _txt() defs
-    return "[".$_[0]->value()."/".$_[0]->width()."]"; 
-}
+    sub _txt { # different from other _txt() defs
+        return "[".$_[0]->value()."/".$_[0]->width()."]"; 
+    }
 
 package Text::KnuthPlass::Glue;
 use base 'Text::KnuthPlass::Element';
 __PACKAGE__->mk_accessors("stretch", "shrink");
 
-sub new { 
-    my $self = shift; 
-    return $self->SUPER::new('stretch' => 0, 'shrink' => 0, @_);
-}
-sub _txt { # different from other _txt() defs
-    return sprintf "<%.2f+%.2f-%.2f>", $_[0]->width(), $_[0]->stretch(), $_[0]->shrink(); 
-}
+    sub new { 
+        my $self = shift; 
+        return $self->SUPER::new('stretch' => 0, 'shrink' => 0, @_);
+    }
+
+    sub _txt { # different from other _txt() defs
+        return sprintf "<%.2f+%.2f-%.2f>", $_[0]->width(), $_[0]->stretch(), $_[0]->shrink(); 
+    }
 
 package Text::KnuthPlass::Penalty;
 use base 'Text::KnuthPlass::Element';
 __PACKAGE__->mk_accessors("penalty", "flagged", "shrink");
-sub new { 
-    my $self = shift; 
-    return $self->SUPER::new('flagged' => 0, 'shrink' => 0, @_);
-}
-sub _txt { # different from other _txt() defs
-    return "(".$_[0]->penalty().($_[0]->flagged() &&"!").")"; 
-}
+
+    sub new { 
+        my $self = shift; 
+        return $self->SUPER::new('flagged' => 0, 'shrink' => 0, @_);
+    }
+
+    sub _txt { # different from other _txt() defs
+        return "(".$_[0]->penalty().($_[0]->flagged() &&"!").")"; 
+    }
 
 package Text::KnuthPlass::Breakpoint;
 use base 'Text::KnuthPlass::Element';
@@ -79,9 +87,10 @@ __PACKAGE__->mk_accessors(qw/position demerits ratio line fitnessClass totals pr
 
 package Text::KnuthPlass::DummyHyphenator;
 use base 'Class::Accessor';
-sub hyphenate { 
-    return $_[1]; 
-}
+
+    sub hyphenate { 
+        return $_[1]; 
+    }
 
 package Text::KnuthPlass;
 use base 'Class::Accessor';
@@ -89,24 +98,30 @@ use Carp qw/croak/;
 
 # these settings are settable via new(%opts)
 my %defaults = (
+    'purePerl' => 0,  # 0: use XS fast code where possible,
+                      # 1: use pure Perl code, not XS. 
+		      # CURRENTLY IGNORED, always uses XS (new() called
+		      #   too late to affect initialization)
+
     'infinity' => 10000,
-    'tolerance' => 30,  # maximum allowable ratio (way out of reasonable!)
+    'tolerance' => 3,  # maximum allowable ratio (up to 30)
     'hyphenpenalty' => 50,
     'demerits' => { 'line' => 10, 'flagged' => 100, 'fitness' => 3000 },
     'space' => { 'width' => 3, 'stretch' => 6, 'shrink' => 9 },
-    'linelengths' => [ 78 ], # character count (fixed pitch)
+    'linelengths' => [ 78 ], # default character count (fixed pitch)
     'measure' => sub { length $_[0] },
     'hyphenator' => 
         # TBD min_suffix 3 for English and many, but not all, languages. %opt
         eval { require Text::Hyphen }? Text::Hyphen->new('min_suffix' => 3):
                                        Text::KnuthPlass::DummyHyphenator->new(),
-    'purePerl' => 0,  # 1: use pure Perl code, not XS CURRENTLY UNUSED
     'const' => 0,  # width (char or points) to reduce line length to allow
                    # for word-split hyphen without overflow into margin
 		   # CURRENTLY UNUSED
     'indent' => 0, # global paragraph indentation width
+                   # same units as linelengths, measure()
 );
 __PACKAGE__->mk_accessors(keys %defaults);
+
 sub new { 
     my $self = shift; 
     # hash elements in new() override whatever's in %default
@@ -127,15 +142,18 @@ set the shrinkability of spaces to 0 in the new() call:
     use Text::KnuthPlass;
     my $typesetter = Text::KnuthPlass->new(
 	'indent' => 2, # two characters,
-        # set space shrinkability to 0
+        # set space shrinkability to 0, since we're dealing with constant
+	#   width characters, including spaces
 	'space' => { 'width' => 3, 'stretch' => 6, 'shrink' => 0 },
 	# can let 'measure' default to character count
-	# default line lengths to 78 characters
+	#   default line lengths to 78 characters
     );
     my @lines = $typesetter->typeset($paragraph);
-    ...
+    # $paragraph is one long text string (for now)
 
+    # one line element per returned line of text
     for my $line (@lines) {
+        # line is made up of nodes of different kinds
         for my $node (@{$line->{'nodes'}}) {
             if ($node->isa("Text::KnuthPlass::Box")) { 
 	        # a Box is a word or word fragment (no hyphen on fragment)
@@ -153,22 +171,23 @@ set the shrinkability of spaces to 0 in the new() call:
         print "\n";
     }
 
-To use with PDF::Builder: (also PDF::API2)
+To use with PDF::Builder (also PDF::API2)
 
-    my $text = $page->text();
-    $text->font($font, 12);
+    my $text = $page->text(); # normal text context on a page
+    $text->font($font, 12);   # set font, size, and leading
     $text->leading(13.5);
 
     my $t = Text::KnuthPlass->new(
         'indent' => 2*$text->text_width('M'), # 2 ems
         'measure' => sub { $text->text_width(shift) }, 
-        'linelengths' => [235]  # points
+	                # advancewidth() is alias for text_width()
+        'linelengths' => [235]  # Points (3.26 inch, 82.9 mm)
     );
     my @lines = $t->typeset($paragraph);
 
-    my $y = 500;  # PDF decreases y down the page
+    my $y = 500;  # PDF decreases y down the page, to 0 at bottom
     for my $line (@lines) {
-        $x = 50;  # left margin
+        $x = 50;  # left margin on page, in Points
         for my $node (@{$line->{'nodes'}}) {
             $text->translate($x,$y);
             if ($node->isa("Text::KnuthPlass::Box")) {
@@ -176,7 +195,10 @@ To use with PDF::Builder: (also PDF::API2)
                 $text->text($node->value());
                 $x += $node->width();
             } elsif ($node->isa("Text::KnuthPlass::Glue")) {
-	        # a Glue is a variable-width space
+	        # a Glue is a variable-width space. A ratio of 0 means "use
+		# normal width (node->width), < 0 will shrink by ratio*9 Points,
+		# > 0 will stretch by ratio*6 Points (these are the default
+		# Glue characteristics)
                 $x += $node->width() + $line->{'ratio'} *
                     ($line->{'ratio'} < 0 ? $node->shrink(): $node->stretch());
 		# we also are glossing over the skipping
@@ -185,9 +207,22 @@ To use with PDF::Builder: (also PDF::API2)
 	    # ignoring Penalty (word split point) within line
         }
 	# explicitly add a hyphen at a line-ending split word
+	# note that we're not checking if the word split on a natural (hard-
+	# coded) hyphen, in which case we may not need to add an explicit one!
+	# also consider adding &SHY; (U+00AD) instead (PDF reader will display
+	# as '-', but screen reader or reformatter will understand that it was
+	# added, and not part of the original text).
         if ($line->{'nodes'}[-1]->is_penalty()) { $text->text("-"); }
+      
         $y -= $text->leading(); # go to next line down
     }
+
+TBD: Show how to use line ratio to set C<wordspace> and possibly C<charspace>
+(for I<tracking>) with a single ASCII space between words, to accomplish the 
+same effect as positioning each word (box) due to glue stretch or shrink.
+The intent is to reduce PDF size by outputting whole lines as a single entity.
+Once markup (font changes) are introduced, this would probably apply to a run
+of words on a line with the same font and font size.
 
 =head1 METHODS
 
@@ -203,22 +238,25 @@ A subroutine reference to determine the width of a piece of text. This
 defaults to C<length(shift)>, which is what you want if you're
 typesetting plain monospaced text. You will need to change this to plug
 into your font metrics if you're doing something graphical. For PDF::Builder
-(also PDF::API2), this would be the C<advancewidth()> method (alias 
-C<text_width()>), which returns the width of a string (in the present font 
+(also PDF::API2), this would be the C<text_width()> method (alias 
+C<advancewidth()>), which returns the width of a string (in the present font 
 and size) in points.
 
     'measure' => sub { length(shift) },  # default, for character output
+                                         #  in characters
     'measure' => sub { $text->advancewidth(shift) }, # PDF::Builder/API2
+                                         #  in Points
 
 =item linelengths
 
-This is an array of line lengths. For instance, C< [30,40,50] > will
+This is an array of line lengths, in the same units as used by C<measure()>. 
+For instance, C< [30,40,50] > will
 typeset a triangle-shaped piece of text with three lines. What if the
 text spills over to more than three lines? In that case, the final value
 in the array is used for all further lines. So to typeset an ordinary
 block-shaped column of text, you only need specify an array with one
 value: the default is C< [78] >. Note that this default would be the 
-character count, rather than points (as needed by PDF::Builder or PDF::API2).
+character count, rather than Points (as needed by PDF::Builder or PDF::API2).
 
     'linelengths' => [$lw, $lw, $lw-6, $lw-6, $lw],
 
@@ -241,7 +279,7 @@ C<linelengths()> method to get or set the list.
 This sets the global (default) paragraph indentation, unless overridden 
 on a per-paragraph basis by
 an C<indent> entry in a C<typeset()> call. The units are the same as for
-C<meaure> and C<linelengths>. A "Box" of value C<''> and width of C<indent> is
+C<measure> and C<linelengths>. A "Box" of value C<''> and width of C<indent> is
 inserted before the first node of the paragraph. Your rendering code should
 know how to handle this by starting at the same C<x> coordinate as other lines,
 and then moving right (or left) by the indicated amount.
@@ -265,6 +303,8 @@ infeasible as to be a waste of time to pursue further. Most of the time, the
 C<tolerance> is going to have a value in the 1 to 3 range. One approach is to 
 try with C<tolerance =E<gt> 1>, and if no successful layout is found, try 
 again with 2, and then 3 and perhaps even 4.
+
+    'tolerance' => 3,  # maximum ratio expansion (default)
 
 =item hyphenator
 
@@ -328,7 +368,12 @@ Various demerits used in calculating penalties, including I<fitness>, which is
 used when line tightness (C<ratio>) changes by more than one class between two
 lines.
 
-    'demerits' => { 'line' => 10, 'flagged' => 100, 'fitness' => 3000 },
+    'demerits' => { 
+        'line' => 10,     # running total of demerits and penalties for a line
+        'flagged' => 100, # this node has a penalty
+        'fitness' => 3000 # this line changed ratio from previous line's
+                          #   by more than one class of tightness
+    },
 
 =back
 
@@ -481,7 +526,7 @@ sub typeset {
     $t->{'linelengths'} = \@temp;
 
     return @lines;
-}
+} # end of typeset()
 
 =head2 $t->line_lengths()
 
@@ -516,7 +561,7 @@ sub line_lengths {
 	$self->{'linelengths'} = \@_;
 	return;
 
-    } else {       # Get
+    } else {   # Get
 	return @{ $self->{'linelengths'} };
     }
 }
@@ -577,6 +622,13 @@ sub _add_word {
     return;
 }
 
+# Note that the paragraph text is split on chunks of one or more "whitespace"
+# characters, effectively replacing single or runs of blanks, tabs (horizontal 
+# and vertical), newline, line and form feed, and carriage return by single 
+# ASCII spaces (U+0020) between words. These should stretch/shrink 
+# proportionately. Non-breaking spaces (U+00A0), and various wide and narrow
+# "space" characters should not be expected to be recognized as needing to be
+# converted to glue.
 sub break_text_into_nodes {
     my ($self, $text, %opts) = @_;
     my @nodes;
@@ -588,29 +640,33 @@ sub break_text_into_nodes {
 
     $self->{'emwidth'}      = $self->measure()->("M");
     $self->{'spacewidth'}   = $self->measure()->(" ");
-    $self->{'spacestretch'} = $self->{'spacewidth'} * $self->space()->{'width'} / $self->space()->{'stretch'};
-    # shrink of 0 desired in constant width or text output
+    $self->{'spacestretch'} = $self->{'spacewidth'} * 
+        $self->space()->{'width'} / $self->space()->{'stretch'};
+    # glue shrink of 0 desired in constant width or text output
     if ($self->space()->{'shrink'} == 0) {
 	    $self->{'spaceshrink'} = 0;
     } else {
-        $self->{'spaceshrink'}  = $self->{'spacewidth'} * $self->space()->{'width'} / $self->space()->{'shrink'};
+        $self->{'spaceshrink'}  = $self->{'spacewidth'} * 
+	    $self->space()->{'width'} / $self->space()->{'shrink'};
     }
 
     my $spacing_type = "_add_space_$style";
     my $start = "_start_$style";
     $self->$start(\@nodes);
 
-    for (0..$#words) { my $word = $words[$_];
+    for (0..$#words) { 
+	my $word = $words[$_];
         $self->_add_word($word, \@nodes);
         $self->$spacing_type(\@nodes,$_ == $#words);
     }
     return @nodes;
-}
+} # end of break_text_into_nodes()
 
 # fully justified (flush left and right)
 sub _start_justify { 
     return;
 }
+
 sub _add_space_justify {
     my ($self, $nodes_r, $final) = @_;
     if ($final) { 
@@ -759,7 +815,7 @@ sub break {
     return @retval;
 }
 
-sub _computeCost {  # _compute_cost() in XS
+sub _computeCost {  # _compute_cost() in XS overrides it
     my ($self, $start, $end, $active, $currentLine, $nodes) = @_;
     warn  "Computing cost from $start to $end\n" if DEBUG;
     warn sprintf "Sum width: %f\n", $self->{'sum'}{'width'} if DEBUG;
@@ -775,22 +831,28 @@ sub _computeCost {  # _compute_cost() in XS
     warn "Adding penalty width" if($nodes->[$end]->is_penalty()) and DEBUG;
     warn sprintf "Width %f, linelength %f\n", $width, $linelength if DEBUG;
 
-    if ($width < $linelength) {
+    if      ($width < $linelength) {
         $stretch = $self->{'sum'}{'stretch'} - $active->totals()->{'stretch'};
         warn sprintf "Stretch %f\n", $stretch if DEBUG;
         if ($stretch > 0) {
             return ($linelength - $width) / $stretch;
-        } else { return $self->infinity(); }
+        } else {
+	    return $self->infinity();
+        }
     } elsif ($width > $linelength) {
         $shrink = $self->{'sum'}{'shrink'} - $active->totals()->{'shrink'};
         warn sprintf "Shrink %f\n", $shrink if DEBUG;
         if ($shrink > 0) {
             return ($linelength - $width) / $shrink;
-        } else { return -$self->infinity(); }
-    } else { return 0; }
+        } else {
+	    return -$self->infinity();
+        }
+    } else { 
+	return 0;
+    }
 }
 
-sub _computeSum {  # _compute_sum() in XS
+sub _computeSum {  # _compute_sum() in XS overrides it
     my ($self, $index, $nodes) = @_;
     my $result = { 
 	'width' => $self->{'sum'}{'width'}, 
@@ -798,7 +860,7 @@ sub _computeSum {  # _compute_sum() in XS
 	'shrink' => $self->{'sum'}{'shrink'}
     };
     for ($index..$#$nodes) {
-        if ($nodes->[$_]->isa("Text::KnuthPlass::Glue")) {
+        if      ($nodes->[$_]->isa("Text::KnuthPlass::Glue")) {
             $result->{'width'} += $nodes->[$_]->width();
             $result->{'stretch'} += $nodes->[$_]->stretch();
             $result->{'shrink'} += $nodes->[$_]->shrink();
@@ -826,12 +888,14 @@ sub _init_nodelist { # Overridden by XS, same name in XS
     return;
 }
 
-# same name in XS, but has quite a bit of code
+# same name in XS (overrides it), but has quite a bit of code
+#   because Perl does much more housekeeping than C
 sub _cleanup { return; } 
 
 sub _active_to_breaks { # Overridden by XS, same name in XS
     my $self = shift;
     return unless @{$self->{'activeNodes'}};
+
     my @breaks;
     my $best = Text::KnuthPlass::Breakpoint->new('demerits' => ~0);
     for (@{$self->{'activeNodes'}}) { 
@@ -846,13 +910,19 @@ sub _active_to_breaks { # Overridden by XS, same name in XS
     return @breaks;
 }
 
-sub _mainloop {  # same name in XS
+# the main loop of the algorithm
+sub _mainloop {  # same name in XS, XS overrides it
     my ($self, $node, $index, $nodes) = @_;
     my $next; my $ratio = 0; my $demerits = 0; my @candidates;
     my $badness; my $currentLine = 0; my $tmpSum; my $currentClass = 0;
     my $active = $self->{'activeNodes'}[0];
     my $ptr = 0;
-    while ($active) { 
+    # The inner loop iterates through all the active nodes with 
+    # line < currentLine and then breaks out to insert the new active node 
+    # candidates before looking at the next active nodes for the next lines.
+    # The result of this is that the active node list is always sorted by 
+    # line number.
+    while ($active) { # outer active loop
         my @candidates = ( # four fitness classes? 
 		           # (tight, normal, loose, very loose)
 	    {'demerits' => ~0},
@@ -861,7 +931,9 @@ sub _mainloop {  # same name in XS
 	    {'demerits' => ~0}
         ); 
         warn  "Outer\n" if DEBUG;
-        while ($active) { 
+        # Iterate through the linked list of active nodes to find new 
+	# potential active nodes, and deactivate current active nodes.
+        while ($active) { # inner active loop
             my $next = $self->{'activeNodes'}[++$ptr];
             warn  "Inner loop\n" if DEBUG;
             $currentLine = $active->line()+1;
@@ -871,26 +943,39 @@ sub _mainloop {  # same name in XS
 					 $currentLine, 
 					 $nodes);
             warn  "Got a ratio of $ratio, node is ".$node->_txt()."\n" if DEBUG;
-            if ($ratio < -1 or 
-                ($node->is_penalty() and 
-		 $node->penalty() == -$self->infinity())) {
-                warn  "Dropping a node\n" if DEBUG;
+	    # Deactivate nodes when the line is too overfull to shrink.
+	   #if ($ratio < -1 or 
+	   #    ($node->is_penalty() and 
+	   #	$node->penalty() == -$self->infinity())) {
+            if ($ratio < -1) { 
+                warn  "Dropping a node for overfull unshrinkable line\n" if DEBUG;
                 $self->{'activeNodes'} = [ grep {$_ != $active} @{$self->{'activeNodes'}} ];
                 $ptr--;
             }
+
+	    # If the ratio is feasible, calculate the total demerits and
+	    # record a candidate active node
             if (-1 <= $ratio and $ratio <= $self->tolerance()) {
-                $badness = 100 * $ratio**3;
+                $badness = 100 * abs($ratio)**3;
                 warn  "Badness is $badness\n" if DEBUG;
                 if ($node->is_penalty() and $node->penalty() > 0) {
-                    $demerits = $self->demerits()->{'line'} + $badness +
-                        $node->penalty();
+		    # positive penalty
+                #   $demerits = $self->demerits()->{'line'} + $badness +
+                #       $node->penalty();
+                    $demerits = ($self->demerits()->{'line'} + $badness)**2 +
+                        ($node->penalty())**2;
                 } elsif ($node->is_penalty() and $node->penalty() != -$self->infinity()) {
-                    $demerits = $self->demerits()->{'line'} + $badness -
-                        $node->penalty();
+		    # negative penalty NOT -inf (forced break)
+                #   $demerits = $self->demerits()->{'line'} + $badness -
+                #       $node->penalty();
+                    $demerits = ($self->demerits()->{'line'} + $badness)**2 -
+                        ($node->penalty())**2;
                 } else {
-                    $demerits = $self->demerits()->{'line'} + $badness;
+		    # all other cases
+                #   $demerits = $self->demerits()->{'line'} + $badness;
+                    $demerits = ($self->demerits()->{'line'} + $badness)**2;
                 }
-		$demerits *= $demerits; # demerits**2
+	       #$demerits *= $demerits; # demerits**2
 
                 if ($node->is_penalty() and $nodes->[$active->position()]->is_penalty()) {
                     $demerits += $self->demerits()->{'flagged'} *
@@ -898,16 +983,22 @@ sub _mainloop {  # same name in XS
                         $nodes->[$active->position()]->flagged();
                 }
 
+		#  Calculate the fitness class for this candidate active node.
                 if    ($ratio < -0.5) { $currentClass = 0; } # tight
                 elsif ($ratio <= 0.5) { $currentClass = 1; } # normal
                 elsif ($ratio <= 1  ) { $currentClass = 2; } # loose
                 else                  { $currentClass = 3; } # very loose
 
-		# bad fitness if changes by more than 1 class
+		# Add a fitness penalty to the demerits if the fitness classes 
+		# of two adjacent lines differ too much (more than 1 apart).
                 $demerits += $self->demerits()->{'fitness'}
                     if abs($currentClass - $active->fitnessClass()) > 1;
 
+		# Add the total demerits of the active node to get the 
+		# total demerits of this candidate node.
                 $demerits += $active->demerits();
+		
+		# Only store the best candidate for each fitness class
                 if ($demerits < $candidates[$currentClass]->{'demerits'}) {
                     warn "Setting c $currentClass\n" if DEBUG;
                     $candidates[$currentClass] = { 
@@ -916,12 +1007,24 @@ sub _mainloop {  # same name in XS
                         'ratio' => $ratio
                     };
                 }
-            }
+            } # if feasible ratio
+
             $active = $next;
+
+	    # Stop iterating through active nodes to insert new candidate 
+	    # active nodes in the active list before moving on to the active 
+	    # nodes for the next line.
+	    # TODO (BLS): The Knuth and Plass paper suggests a conditional for 
+	    # currentLine < j0. This means paragraphs with identical line 
+	    # lengths will not be sorted by line number. Find out if that is a 
+	    # desirable outcome. For now I left this out, as it only adds 
+	    # minimal overhead to the algorithm and keeping the active node 
+	    # list sorted has a higher priority.
+      
             #warn "Active is now $active" if DEBUG;
             last if !$active || 
                 $active->line() >= $currentLine;
-        }
+        } # inner Active loop
         warn  "Post inner loop\n" if DEBUG;
 
         $tmpSum = $self->_computeSum($index, $nodes);
@@ -957,9 +1060,9 @@ sub _mainloop {  # same name in XS
                 #warn  @{$self->{'activeNodes'}} if DEBUG;
             } # demerits check
         } # fitness class 0..3 loop
-    } # while $active loop
+    } # while $active loop (outer)
     return;
-}
+} # end of _mainloop()
 
 =head2 @lines = $t->breakpoints_to_lines(\@breakpoints, \@nodes)
 
@@ -1010,9 +1113,11 @@ For subclassers.
 sub boxclass { 
     return "Text::KnuthPlass::Box";
 }
+
 sub glueclass { 
     return "Text::KnuthPlass::Glue";
 }
+
 sub penaltyclass { 
     return "Text::KnuthPlass::Penalty";
 }
@@ -1043,7 +1148,7 @@ give the go-ahead. Unsolicited PRs may be closed without further action.
 
 Copyright (c) 2011 Simon Cozens.
 
-Copyright (c) 2020-2022 Phil M Perry.
+Copyright (c) 2020-2026 Phil M Perry.
 
 This program is released under the following license: Perl, GPL
 

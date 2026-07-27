@@ -1,33 +1,16 @@
-2026-07-23  1.08  (Phil M Perry)   UNRELEASED
+2026-07-27  1.08  (Phil M Perry)   UNRELEASED
 * = work in progress, no promises it will be in this release!
 
-* see https://github.com/sciurius/perl-SVGPDF/issues/5 regarding testing and
-  examples on both API2 and Builder. have t-tests for PDF::Builder and 
-  equivalent PDF::API2 tests. skip one if that PDF::* isn't installed, or run
-  (or skip) both. for examples/, if only one PDF::* installed, use that one;
-  if both installed, look for command line switch (and then to environment 
-  variable) to say which to use. quit if neither installed. per PDF::Table,
-  examples command line -?[AB], PDFpref file, $ENV{PDF_prefLib}
+  lib/Text/KnuthPlass.xs, lib/Text/Knuthplass.pm
+   Compare against bramstein/typeset, add documentation (comments) and fix 
+    some errors (bring into conformance with typeset code). This includes
+    badness = ratio**3 changed to |ratio|**3, and demerits being sum of
+    squares rather than simple addition.
+*  TBD: full line-by-line compare against linebreak.js.
 
-* test 'center' style, implement (ragged) 'left' and 'right'. defaults to
-  'justify'.
-
-* look at fixed pitch/char hyphenated word overhangs right margin (#10)
-
-* irregular column shapes w/ leading, HS wrapper
-
-* new and better hyphenation library (#9)
-
-* examples/PDF/Article.pl
-   Add "Article" example (PDF output only), using Text::KnuthPlass and
-    the new PDF::Builder "column" capability. (Builder only). Needs column()
-    in PDF::Builder to be updated to use KP, while examples need to be updated
-    to use column() (and thus require PDF::Builder!). May end up with two
-    versions of PDF examples: current for API2, and with column() for Builder.
-
-  SECURITY.md (new), CONTRIBUTING.md (new), META.json, META.yml
-   Fix Kwalitee Issues: add CONTRIBUTING.md, add SECURITY.md with contact 
-    address, per Builder. Add minimum required Perl to META.
+  SECURITY.md (new), MANIFEST, META.json, META.yml
+   Fix Kwalitee Issues: add SECURITY.md with contact address, per Builder.
+    Add minimum required Perl to META.
 
   lib/Text/KnuthPlass.xs, lib/Text/Knuthplass.pm
    Per fix in bramstein/typeset, computeCost end of paragraph gets -infinity
@@ -37,6 +20,8 @@
    Note that purePerl being set to 1 does nothing... it's overwritten in
     KnuthPlass.pm to force 0 value. Need to change it there if you want to
     force only Perl to be used (for debugging).
+*  TBD: see if there is some restructure that will allow option 'purePerl'
+    to be set at run time.
 
   README.md  update to point to new Home Page structure on catskilltech.com
       including both full documentation and examples

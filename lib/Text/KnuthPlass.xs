@@ -35,8 +35,14 @@ typedef struct LinkedList_s {
 
 // overrides _computeCost() in Perl (note name difference!)
 //   a = $active, current_line = $currentLine in Perl
-NV _compute_cost(Text_KnuthPlass self, IV start, IV end, Breakpoint* a, 
-    IV current_line, AV* nodes) {
+NV _compute_cost(
+    Text_KnuthPlass self, 
+    IV start, 
+    IV end, 
+    Breakpoint* a, 
+    IV current_line, 
+    AV* nodes
+) {
     IV  infinity   = ivHash(self, "infinity");  // $self->{'infinity'}
     HV* sum = (HV*)SvRV(*hv_fetch((HV*)self, "sum", 3, FALSE));
     HV* totals = a->totals;
@@ -144,8 +150,8 @@ void _unlinkKP(LinkedList* list, Breakpoint* a) {
 
 MODULE = Text::KnuthPlass		PACKAGE = Text::KnuthPlass		
 
-void
-_init_nodelist(self)
+// overrides Perl version
+void _init_nodelist(self)
     Text_KnuthPlass self
 
     CODE:
@@ -157,6 +163,7 @@ _init_nodelist(self)
     activelist->to_free = newAV();
     hv_stores((HV*)self, "activeNodes", ((SV *)activelist));
 
+// overrides Perl version
 void _active_to_breaks(self)
     Text_KnuthPlass self
 
@@ -180,6 +187,7 @@ void _active_to_breaks(self)
         best = best->previous;
     }
 
+// overrides Perl version
 void _cleanup(self)
     Text_KnuthPlass self
 
@@ -206,8 +214,9 @@ void _cleanup(self)
     sv_free((SV*)activelist->to_free);
     // Safefree(activelist);
 
-void
-_mainloop(self, node, index, nodes)
+// the main loop of the algorithm
+// overrides Perl version
+void _mainloop(self, node, index, nodes)
     Text_KnuthPlass self
     SV* node
     IV index
@@ -243,56 +252,75 @@ _mainloop(self, node, index, nodes)
         nodepenalty = SvIV(*hv_fetch((HV*)SvRV(node), "penalty", 7, TRUE));
     }
 
-    while (active) {
+    // The inner loop iterates through all the active nodes with line < currentLine and then
+    // breaks out to insert the new active node candidates before looking at the next active
+    // nodes for the next lines. The result of this is that the active node list is always
+    // sorted by line number.
+    while (active) { // outer active loop
         int t;
         candidates[0] = NULL; candidates[1] = NULL; 
         candidates[2] = NULL; candidates[3] = NULL;
         debug(warn("Outer\n"));
-        while (active) {
 
+        // Iterate through the linked list of active nodes to find new potential active nodes
+        // and deactivate current active nodes.
+        while (active) { // inner active loop
             next = active->next;
             IV position = active->position;
-
             debug(warn("Inner loop\n"));
-
             current_line = 1+ active->line;
 /*warn("_mainloop, current_line=%i\n", current_line);*/
             ratio = _compute_cost(self, position, index, active, current_line, nodes);
             debug(warn("Got a ratio of %f\n", ratio));
 
-            if (ratio < 1 || (isPenalty(node) && nodepenalty == -infinity)) {
-                debug(warn("Dropping a node\n"));
+            // Deactivate nodes when the line is too overfull to shrink.
+          //if (ratio < 1 || (isPenalty(node) && nodepenalty == -infinity)) {
+            if (ratio < 1) {
+                debug(warn("Dropping a node for overfull unshrinkable line\n"));
                 _unlinkKP(activelist, active);
             }
 
+            // If the ratio is feasible, calculate the total demerits and
+            // record a candidate active node
             if (-1 <= ratio && ratio <= tolerance) {
                 SV* nodeAtPos = *av_fetch(nodes, position, FALSE); 
-                badness = 100 * ratio * ratio * ratio;
+                badness = 100 * pow(abs(ratio), 3);
                 debug(warn("Badness is %f\n", badness));
                 if (isPenalty(node) && nodepenalty > 0) {
-                    demerits = linedemerits + badness + nodepenalty;
+                    // positive penalty
+                //  demerits = linedemerits + badness + nodepenalty;
+                    demerits = pow(linedemerits + badness, 2) + pow(nodepenalty, 2);
                 } else if (isPenalty(node) && nodepenalty != -infinity) {
-                    demerits = linedemerits + badness - nodepenalty;
+                    // negative penalty, but not a forced break (-inf)
+                //  demerits = linedemerits + badness - nodepenalty;
+                    demerits = pow(linedemerits + badness, 2) - pow(nodepenalty, 2);
                 } else {
-                    demerits = linedemerits + badness;
+                    // all other cases
+                //  demerits = linedemerits + badness;
+                    demerits = (linedemerits + badness)**2;
                 }
-                demerits = demerits * demerits;
+             // demerits = demerits * demerits;
                 if (isPenalty(node) && isPenalty(SvRV(nodeAtPos))) {
                     demerits = demerits + (flaggeddemerits * 
                         ivHash(node, "flagged") * 
                         ivHash(SvRV(nodeAtPos), "flagged"));
                 }
 
+                // Calculate the fitness class for this candidate active node.
                 if      (ratio < -0.5)  current_class = 0; // tight
-                else if (ratio <= 0.5)  current_class = 1; // normal
-                else if (ratio <= 1)    current_class = 2; // loose
-                else                    current_class = 3; // very loose
+                    else if (ratio <= 0.5)  current_class = 1; // normal
+                    else if (ratio <= 1)    current_class = 2; // loose
+                    else                    current_class = 3; // very loose
 
+                // Add a fitness penalty to the demerits if the fitness classes of two adjacent lines
+                // differ too much (more than 1 apart).
                 if (abs(current_class - active->fitness_class) > 1) 
                     demerits += fitnessdemerits;
 
+                // Add the total demerits of the active node to get the total demerits of this candidate node.
                 demerits += active->demerits;
 
+                // Only store the best candidate for each fitness class
                 if (!candidates[current_class] ||
                     demerits < candidates[current_class]->demerits) {
                     debug(warn("Setting c %i\n", current_class));
@@ -302,13 +330,21 @@ _mainloop(self, node, index, nodes)
                     candidates[current_class]->demerits = demerits;
                     candidates[current_class]->ratio = ratio;
                 }
-            }
+            } // if feasible ratio
+
             active = next;
+
+            // Stop iterating through active nodes to insert new candidate active nodes in the active list
+            // before moving on to the active nodes for the next line.
+            // TODO (BLS): The Knuth and Plass paper suggests a conditional for currentLine < j0. This means paragraphs
+            // with identical line lengths will not be sorted by line number. Find out if that is a desirable outcome.
+            // For now I left this out, as it only adds minimal overhead to the algorithm and keeping the active node
+            // list sorted has a higher priority.
+
             if (!active || active->line >= current_line) 
                 break;
-        }
+        } // inner Active loop
         debug(warn("Post inner loop\n"));
-
 
         for (t = 0; t <= 3; t++) {
             if (candidates[t]) {
@@ -326,8 +362,11 @@ _mainloop(self, node, index, nodes)
                     debug(warn("Before\n"));
                     newnode->prev = active->prev;
                     newnode->next = active;
-                    if (!active->prev) { activelist->head = newnode; }
-                    else { active->prev->next = newnode; }
+                    if (!active->prev) { 
+                        activelist->head = newnode;
+                    } else { 
+                        active->prev->next = newnode;
+                    }
                     active->prev = newnode;
                     activelist->list_size++;
                 } else {
@@ -345,7 +384,8 @@ _mainloop(self, node, index, nodes)
                 }
                 sv_free((SV*)candidates[t]->totals);
                 Safefree(candidates[t]);
-           } // demerits check (candidates[fitness class] > 0)
-        } // fitness class (t) 0..3 loop
-    } // while active loop
+            } // demerits check (candidates[fitness class] > 0)
+        } // fitness class (t) 0..3 for loop
+
+    } // while active loop (outer)
 

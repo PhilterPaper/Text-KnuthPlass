@@ -1,9 +1,20 @@
+27 July 2026
+
 This file is not intended for update by the public. If you want to suggest
 something (bugs, improvements, enhancements, etc., or just comment on one
 of these items) please open an issue (ticket) on GitHub (with an appropriate
 label). What's here is meant to be reminders to myself, but if it gives you a
 hankering to design/code and contribute some improvements (please check first!),
 that's good.
+
+==========================================================================
+
+Need to coordinate with changes to bramstein/typeset package on GitHub,
+particularly to src/linebreak.js. Right now, I'm not sure how much the Perl
+code has been updated since 2011! I have a full line-by-line compare to do 
+:-( . Not sure whether other .js files need to be watched for their changes
+(I suspect only linebreak.js).
+
 ==========================================================================
 
 text output, if line is already as tight as possible (one space between each
