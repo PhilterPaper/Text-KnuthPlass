@@ -70,10 +70,30 @@ perfect rectangle (see examples).
 
 ## Installation
 
+Presumably, you have Perl installed, or there would be no point in trying
+to install `Text::KnuthPlass`!
+
     perl Build.PL
     ./Build
     ./Build test
     ./Build install
+
+If your system is configured to know what to do with a .PL file, you may be
+able to just say `Build.PL`, or even just `Build` for the first command. This
+**produces** a Perl file `Build`, which (if your shell doesn't recognize a `#!`
+hashbang/shebang) you may need to add `perl` in front of. Worst case, you can 
+explicitly tell it to run Perl:
+
+    perl Build.PL
+    perl ./Build
+    perl ./Build test
+    perl ./Build install
+
+in which case there doesn't seem to be a need for `Build.bat` (on Windows),
+nor the just-built `_build/` files. In any case, don't forget to use backslash
+`\\` on Windows instead of slash `/` as the directory separator!
+Or, if you _are_ on Windows, you _can_ try running that batch file `Build.bat`
+instead of the created Perl script `Build`. Again, mind the directory separator.
 
 Note that if the XS (C) code fails to build and install for some reason, or
 you enjoy watching paint dry, you

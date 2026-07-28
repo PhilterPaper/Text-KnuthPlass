@@ -33,16 +33,9 @@ typedef struct LinkedList_s {
     AV* to_free;
 } LinkedList;
 
-// overrides _computeCost() in Perl (note name difference!)
-//   a = $active, current_line = $currentLine in Perl
-NV _compute_cost(
-    Text_KnuthPlass self, 
-    IV start, 
-    IV end, 
-    Breakpoint* a, 
-    IV current_line, 
-    AV* nodes
-) {
+  // overrides _computeCost() in Perl (note name difference!)
+  //   a = $active, current_line = $currentLine in Perl
+NV _compute_cost(Text_KnuthPlass self, IV start, IV end, Breakpoint* a, IV current_line, AV* nodes) {
     IV  infinity   = ivHash(self, "infinity");  // $self->{'infinity'}
     HV* sum = (HV*)SvRV(*hv_fetch((HV*)self, "sum", 3, FALSE));
     HV* totals = a->totals;
@@ -83,7 +76,7 @@ NV _compute_cost(
     } else { return 0; }
 }
 
-// overrides _computeSum() in Perl (note name difference!)
+ // overrides _computeSum() in Perl (note name difference!)
 HV* _compute_sum(Text_KnuthPlass self, IV index, AV* nodes) {
     HV* result = newHV();
     HV* sum = (HV*)SvRV(*hv_fetch((HV*)self, "sum", 3, FALSE));
@@ -112,7 +105,7 @@ HV* _compute_sum(Text_KnuthPlass self, IV index, AV* nodes) {
     hv_stores(result, "stretch", newSVnv(stretch));
     hv_stores(result, "shrink", newSVnv(shrink));
     return result;
-}
+ }
 
 Breakpoint* _new_breakpoint (void) {
     Breakpoint* dummy;
@@ -126,7 +119,7 @@ Breakpoint* _new_breakpoint (void) {
     hv_stores(totals, "shrink", newSVnv(0));
     dummy->totals = totals;
     return dummy;
-}
+ }
 
 void free_breakpoint(Breakpoint* b) {
     while (b) {
@@ -139,20 +132,20 @@ void free_breakpoint(Breakpoint* b) {
     }
     if (b && b->totals) sv_free((SV*)b->totals);
     if (b) Safefree(b);
-}
+ }
 
 void _unlinkKP(LinkedList* list, Breakpoint* a) {
     if (!a->prev) { list->head = a->next; } else { a->prev->next = a->next; }
     if (!a->next) { list->tail = a->prev; } else { a->next->prev = a->prev; }
     list->list_size--;
     av_push(list->to_free, newSViv((IV)a));
-}
+ }
 
 MODULE = Text::KnuthPlass		PACKAGE = Text::KnuthPlass		
 
-// overrides Perl version
-void _init_nodelist(self)
-    Text_KnuthPlass self
+void
+_init_nodelist(Text_KnuthPlass self)
+  // overrides Perl version
 
     CODE:
     // overrides _init_nodelist() in Perl
@@ -163,9 +156,8 @@ void _init_nodelist(self)
     activelist->to_free = newAV();
     hv_stores((HV*)self, "activeNodes", ((SV *)activelist));
 
-// overrides Perl version
-void _active_to_breaks(self)
-    Text_KnuthPlass self
+void _active_to_breaks(Text_KnuthPlass self) 
+  // overrides Perl version
 
     PREINIT:
     LinkedList* activelist;
@@ -187,9 +179,8 @@ void _active_to_breaks(self)
         best = best->previous;
     }
 
-// overrides Perl version
-void _cleanup(self)
-    Text_KnuthPlass self
+void _cleanup(Text_KnuthPlass self)
+  // overrides Perl version
 
     CODE:
     // overrides _cleanup() in Perl (which is a dummy stub) 
@@ -214,13 +205,9 @@ void _cleanup(self)
     sv_free((SV*)activelist->to_free);
     // Safefree(activelist);
 
-// the main loop of the algorithm
-// overrides Perl version
-void _mainloop(self, node, index, nodes)
-    Text_KnuthPlass self
-    SV* node
-    IV index
-    AV* nodes
+void _mainloop(Text_KnuthPlass self, SV* node, IV index, AV* nodes)
+  // the main loop of the algorithm
+  // overrides Perl version
 
     CODE:
     // overrides _mainloop() in Perl 
@@ -267,9 +254,11 @@ void _mainloop(self, node, index, nodes)
         while (active) { // inner active loop
             next = active->next;
             IV position = active->position;
+
             debug(warn("Inner loop\n"));
+
             current_line = 1+ active->line;
-/*warn("_mainloop, current_line=%i\n", current_line);*/
+  /*warn("_mainloop, current_line=%i\n", current_line);*/
             ratio = _compute_cost(self, position, index, active, current_line, nodes);
             debug(warn("Got a ratio of %f\n", ratio));
 
@@ -297,7 +286,7 @@ void _mainloop(self, node, index, nodes)
                 } else {
                     // all other cases
                 //  demerits = linedemerits + badness;
-                    demerits = (linedemerits + badness)**2;
+                    demerits = pow(linedemerits + badness, 2);
                 }
              // demerits = demerits * demerits;
                 if (isPenalty(node) && isPenalty(SvRV(nodeAtPos))) {
