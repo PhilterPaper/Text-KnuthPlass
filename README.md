@@ -4,28 +4,29 @@ A line-splitting (paragraph shaping) library for Perl.
 
 ## What is it?
 
-Text::KnuthPlass uses the famed Knuth-Plass line-splitting algorithm (used in 
-**TeX** and **LaTeX**) to break up a text string into a properly "shaped" 
-paragraph. Certain rules are followed to not only efficiently pack the 
-paragraph into a minimal number of lines, but also to minimize hyphenation, 
-keep line density fairly constant, and take other measures to ensure that the 
-output is typographically "nice looking". It works with both fixed-width fonts 
-and with proportional (variable-width) fonts, where you supply the font library 
-that calculates word lengths (e.g., PDF::Builder's _advancewidth()_ method). 
-Text::KnuthPlass permits varying line lengths, to allow text to flow around 
-other objects, such as illustrations. It also makes use of (by default) 
-Text::Hyphen, a library to indicate where words can be split (for hyphenation 
+Text::KnuthPlass uses the famed Knuth-Plass line-splitting algorithm (used in
+**TeX** and **LaTeX**) to break up a text string into a properly "shaped"
+paragraph. Certain rules are followed to not only efficiently pack the
+paragraph into a minimal number of lines, but also to minimize hyphenation,
+keep line density fairly constant, and take other measures to ensure that the
+output is typographically "nice looking". It works with both fixed-width fonts
+and with proportional (variable-width) fonts, where you supply the font library
+that calculates word lengths (e.g., PDF::Builder's _advancewidth()_ method).
+Text::KnuthPlass permits varying line lengths, to allow text to flow around
+other objects, such as illustrations. It also makes use of (by default)
+Text::Hyphen, a library to indicate where words can be split (for hyphenation
 purposes).
 
 See also this blog on [Paragraph Shaping](https://www.catskilltech.com/utils/show.php?link=paragraph-shaping) for a deeper dive into the subject.
 
-[Home Page](https://www.catskilltech.com/FreeSW/product/Text%2DKnuthPlass/title/Text%3A%3AKnuthPlass/freeSW_full), including Documentation and Examples.
+[Home Page](https://PhilterPaper.github.io/textknuthplass/index.html),
+including Documentation and Examples.
 
 [![Open Issues](https://img.shields.io/github/issues/PhilterPaper/Text-KnuthPlass)](https://github.com/PhilterPaper/Text-KnuthPlass/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/PhilterPaper/Text-KnuthPlass/graphs/commit-activity)
 
-`Text::KnuthPlass` is a Perl and XS (C) implementation of the well-known 
+`Text::KnuthPlass` is a Perl and XS (C) implementation of the well-known
 Knuth-Plass TeX paragraph-shaping (a.k.a. line-breaking) algorithm, as created
 by Donald E. Knuth and Michael F. Plass in 1981.
 
@@ -60,7 +61,7 @@ The Knuth-Plass algorithm does this by defining "boxes", "glue", and
 "penalties" for the paragraph text, and fiddling with line break points to
 minimize the overall sum of demerits (a penalty value for various "bad
 typesetting" gaffes). This can result in the "breaking" of one
-or more of the listed rules, if it results in an overall better scoring 
+or more of the listed rules, if it results in an overall better scoring
 ("better looking") layout.
 
 `Text::KnuthPlass` handles word widths by either character count, or a
@@ -76,7 +77,7 @@ to install `Text::KnuthPlass`!
     perl Build.PL
     ./Build
     ./Build test
-    ./Build install
+   ./Build install
 
 If your system is configured to know what to do with a .PL file, you may be
 able to just say `Build.PL`, or even just `Build` for the first command. This
@@ -120,14 +121,15 @@ Bug tracking is via
 (you will need a GitHub account to create a ticket, or contribute to a
 discussion, but anyone can read tickets.) The old RT ticket system is closed.
 
-Do NOT under ANY circumstances open a PR (Pull Request) to **report a _bug_**. 
-It is a waste of both _your_ and _our_ time and effort. A PR is an offering of 
-code that you think belongs **permanently** in the product. Instead, simply 
-open a regular ticket (_issue_) in GitHub, and _attach_ a Perl (.pl.txt) program 
-illustrating the problem, if possible. 
-If you believe that you have a good program patch, and offer to share
-it as a PR, we may give the go-ahead. Unsolicited PRs may be closed without
-further action.
+Do NOT under ANY circumstances open a PR (Pull Request) to **report a _bug_**.
+I is a waste of both _your_ and _our_ time and effort. A PR is an offering of
+code that you think belongs **permanently** in the product. Instead, simply
+open a regular ticket (_issue_) in GitHub, and _attach_ a Perl (.pl.txt)
+_program_ illustrating the problem, if possible. Note that you might have to
+change the file extension from `.pl` to `.pl.txt` in order to get GitHub to
+upload it. If you believe that you have a good program patch, and offer to
+share it as a PR, we may give the go-ahead. Unsolicited PRs may be closed
+without further action.
 
 ## License
 
@@ -136,7 +138,8 @@ the GPL license, if desired, but you will have to add a copy of that license
 to your distribution, per its terms.
 
 (c)copyright 2020-2026 by Phil M Perry;
-earlier copyrights held by Simon Cozens
+earlier copyrights held by Simon Cozens;
+based on Bram Stein's Javascript version.
 
 ## History
 
@@ -156,19 +159,17 @@ code.
 There are many copies of the Knuth-Plass paper/thesis, as well as discussions
 and explanations of the algorithm, floating around on the Web, so I will leave
 it to you to find some examples. Just the keywords _Knuth_ and _Plass_ should
-get you there. Rather than my listing everything here, pay a 
-[visit](https://www.catskilltech.com/utils/show.php?link=paragraph-shaping#resources) 
-to my discussion on the subject.
-There is also a list of 
-[criteria](https://www.catskilltech.com/utils/show.php?link=paragraph-shaping#criteria) 
+get you there. Rather than my listing everything here, pay a
+[visit](https://www.catskilltech.com/utils/show.php?link=paragraph-shaping#resources)
+to my discussion on the subject. There is also a list of
+[criteria](https://www.catskilltech.com/utils/show.php?link=paragraph-shaping#criteria)
 of what makes good paragraph shaping.
 
 There is also a refactored (still Javascript) version of
-`typeset`, intended for use as a library, in `frobnitzem/typeset`.
-Finally, there are a
-number of Knuth-Plass implementations in other languages, such as Python
-(`akuchling/texlib`) and typescript (`avery-laird/breaker`) that could be
-studied. And of course, there is the original Knuth-Plass paper and the
+`typeset`, intended for use as a library, in `frobnitzem/typeset`. Finally,
+there are a number of Knuth-Plass implementations in other languages, such as
+Python (`akuchling/texlib`) and typescript (`avery-laird/breaker`) that could
+be studied. And of course, there is the original Knuth-Plass paper and the
 annotated listing in _TeX: The Program_. It's just a matter of finding the
 time to go through all these sources and extend `Text::KnuthPlass` in
 various ways.
@@ -186,4 +187,3 @@ right. The output file is `Flatland.pdf`.
 There are more examples, including `KP.pl` and `Triangle.pl`, both giving some
 usage examples to get various effects, for a variety of input texts. Both PDF
 and text file outputs are produced.
-

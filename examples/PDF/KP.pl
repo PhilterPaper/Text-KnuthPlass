@@ -266,7 +266,7 @@ sub write_paragraph {
     # + or - indent amount. if negative indent, xleft+indent better be >= 0
     my $indent = 0;
     my $node1 = $lines[0]->{'nodes'}->[0]; 
-    if ($node1->isa("Text::KnuthPlass::Box") && $node1->value() eq '') {
+    if ($node1->is_box() && $node1->value() eq '') {
 	# we have an indent value (for first line) + or -
 	$indent = $node1->width();
 	shift @{ $lines[0]->{'nodes'} }; # get rid of indent box
@@ -292,7 +292,7 @@ sub write_paragraph {
         if ($line->{'nodes'}[-1]->is_penalty()) { 
 	    # last word in line is split (hyphenated). node[-2] must be a Box?
 	    my $lastChar = '';
-            if ($line->{'nodes'}[-2]->isa("Text::KnuthPlass::Box")) {
+            if ($line->{'nodes'}[-2]->is_box()) {
 	        $lastChar = substr($line->{'nodes'}[-2]->value(), -1, 1);
                 if ($lastChar eq '-'      || # ASCII hyphen
 		    $lastChar eq '\x2010' || # hyphen
@@ -309,7 +309,7 @@ sub write_paragraph {
 		    $useSplitHyphen = 1;
 	            my $number_glues = 0;
 	            for my $node (@{$line->{'nodes'}}) {
-	                if ($node->isa("Text::KnuthPlass::Glue")) { $number_glues++; }
+	                if ($node->is_glue()) { $number_glues++; }
 	            }
 	            # TBD if no glues in this line, or if reduction amount makes
 		    #   glue too close to 0 in width, have to do something else!
@@ -331,14 +331,14 @@ sub write_paragraph {
 	#   by size of punctuation.
         for my $node (@{$line->{'nodes'}}) {
             $text->translate($x,$y);
-            if ($node->isa("Text::KnuthPlass::Box")) {
+            if ($node->is_box()) {
                 $text->text($node->value());
                 $x += $node->width();
-            } elsif ($node->isa("Text::KnuthPlass::Glue")) {
+            } elsif ($node->is_glue()) {
                 $x += ($node->width() - $reduceGlue) + $line->{'ratio'} *
 	        (($raggedRight)? 1:
                     ($line->{'ratio'} < 0 ? $node->shrink() : $node->stretch()));
-            } elsif ($node->isa("Text::KnuthPlass::Penalty")) {
+            } elsif ($node->is_penalty()) {
 	        # no action at this time (common at hyphenation points, is
 		# of interest if hyphenated word at end of line)
             }

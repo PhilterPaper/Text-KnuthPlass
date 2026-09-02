@@ -9,6 +9,7 @@ META.yml
 ppport.h
 SECURITY.md
 INFO/kp.html
+INFO/RoadMap.md
 lib/Text/KnuthPlass.pm
 lib/Text/KnuthPlass.xs
 lib/Text/typemap
@@ -20,6 +21,7 @@ xt/pod.t
 tools/1_pc.pl
 tools/2_t-tests.pl
 tools/3_examples.pl
+tools/md2html.pl
 tools/pod2cpanhtml.pl
 examples/PDF/KP.pl
 examples/PDF/Flatland.pl

@@ -9,7 +9,7 @@
 # TBD: pass indent value, create box (space) with that width. then can
 #     pass normal length lines in list. also pass scalar 'linelength' to use
 #       if list is empty
-#     HOW best to span short line list across multiple paragraphs? w/o manual 
+#     HOW best to span short line list across multiple paragraphs? w/o manual
 #       update
 #     can we just set globals once in new() and keep reusing $t with repeated
 #       calls to $t->typeset()? have indent=>0 override at section start
@@ -20,12 +20,12 @@
 # NOTE: Javascript version indents by gluing a 30px wide empty box to the
 #         start of a paragraph (but not the first in a section)
 #       <img> in JS done at top of a paragraph, and N lines (N based on height
-#         of image) pushed onto any existing line length list, with width 
+#         of image) pushed onto any existing line length list, with width
 #         reduction figured from image width. of course, needs a working LL!
 #         Pure Perl LL is working, just XS needs fix
 # compare to bramstein/typset examples/flatland/index.html
 # compare to                  #22 bad line-breaking
-# 
+#
 use strict;
 use warnings;
 use Text::KnuthPlass;
@@ -164,7 +164,7 @@ $end_y = write_paragraph(@lines);
 
 # ---- <p>
 # insert Fig-1. 162x284 end_y is at 5th line of THIS paragraph
-# and image is flush with paragraph's 5th line
+# and image is flush with paragraph's 5th line. SHOULD BE float: left
 # image_png('examples/resources/Figure-1.png');
 
 # calculate lineLengths array from position and size and margins of image
@@ -179,7 +179,7 @@ dump_lines(@lines);
 $end_y = write_paragraph(@lines);
 
 # ---- <p>
-# 2nd part of paragraph is narrower to accomodate Fig-1. 
+# 2nd part of paragraph is narrower to accomodate Fig-1.
 # whatever is left of line lengths list gets used in subsequent calls
 
 $ytop = $end_y;
@@ -264,7 +264,7 @@ $end_y = write_paragraph(@lines);
 
 # ---- <p>
 # insert Fig-2. 257x250 end_y is at line 1 of THIS paragraph
-# image is flush with the top of this paragraph
+# image is flush with the top of this paragraph. SHOULD BE float: right
 # image_png('examples/resources/Figure-2.png');
 
 # calculate lineLengths array from position and size and margins of image
@@ -290,7 +290,7 @@ close $page;
 # ======================================================================
 sub fresh_page {
     # set up a new page, with no content
-    # $start = 1: flag to suppress BoP 
+    # $start = 1: flag to suppress BoP
     # $end   = 1; flag to suppress ToP
 
     # bottom margin, unless very first page
@@ -337,7 +337,7 @@ sub text_right {  # right-justified
 
 # need to carve out space for floats (images) on right?
 sub space_for_image {
-    # return an array reference containing the lengths need for the 
+    # return an array reference containing the lengths need for the
     # listlengths array in the new() method. $margin_r can be less than
     # zero to have the image stick out into the right margin
     # $start is number of full-length entries to stick at the beginning,
@@ -360,7 +360,7 @@ sub space_for_image {
     # figure how many lines ($leading amount) to shorten, one element for
     # each shortened line
     my $num_lines = ceil($img_h / $leading);
-     
+
     for (my $i = 0; $i < $num_lines; $i++) {
 	push @list, $lineWidth-$img_w;
     }
@@ -387,8 +387,8 @@ sub write_paragraph {
     # first line, see if first box is value '' with non-zero width. would be
     # + or - indent amount. if negative indent, xleft+indent better be >= 0
     my $indent = 0;
-    my $node1 = $lines[0]->{'nodes'}->[0]; 
-    if ($node1->isa("Text::KnuthPlass::Box") && $node1->value() eq '') {
+    my $node1 = $lines[0]->{'nodes'}->[0];
+    if ($node1->is_box() && $node1->value() eq '') {
 	# we have an indent value (for first line) + or -
 	$indent = $node1->width();
 	shift @{ $lines[0]->{'nodes'} }; # get rid of indent box
@@ -400,21 +400,21 @@ sub write_paragraph {
         $x = $xleft;
         print "========== new line @ $x,$y ==============\n" if $line_dump;
 	$x += $indent; # done separately so debug shows valid $x
-	$line_str .= ' ' x $x; 
+	$line_str .= ' ' x $x;
 	$indent = 0;
 
         # how much to reduce each glue due to adding hyphen at end
         # According to Knuth-Plass article, some designers prefer to have
         #   punctuation (including the word-splitting hyphen) hang over past the
         #   right margin (as the original code did here). However, other
-        #   punctuation did NOT hang over, so that would need some work to 
+        #   punctuation did NOT hang over, so that would need some work to
 	#   separate out line-end punctuation and giving the box a zero width.
 
         my $useSplitHyphen = 0;
-        if ($line->{'nodes'}[-1]->is_penalty()) { 
+        if ($line->{'nodes'}[-1]->is_penalty()) {
 	    # last word in line is split (hyphenated). node[-2] must be a Box?
 	    my $lastChar = '';
-            if ($line->{'nodes'}[-2]->isa("Text::KnuthPlass::Box")) {
+            if ($line->{'nodes'}[-2]->is_box()) {
 	        $lastChar = substr($line->{'nodes'}[-2]->value(), -1, 1);
                 if ($lastChar eq '-'      || # ASCII hyphen
 		    $lastChar eq '\x2010' || # hyphen
@@ -431,7 +431,7 @@ sub write_paragraph {
 		    $useSplitHyphen = 1;
 	            my $number_glues = 0;
 	            for my $node (@{$line->{'nodes'}}) {
-	                if ($node->isa("Text::KnuthPlass::Glue")) { $number_glues++; }
+	                if ($node->is_glue()) { $number_glues++; }
 	            }
 	            # TBD if no glues in this line, or if reduction amount makes
 		    #   glue too close to 0 in width, have to do something else!
@@ -445,7 +445,7 @@ sub write_paragraph {
 	#   ignore penalty
 	my $node;
 	
-	# determine how many extra spaces (minimum 1 space) and how to 
+	# determine how many extra spaces (minimum 1 space) and how to
 	#   distribute them among glue nodes
 	my @spaces_list; # space count per glue node 1,2,3,...
 	@spaces_list = get_spaces($line, $useSplitHyphen, $const, $LTR);
@@ -457,25 +457,25 @@ sub write_paragraph {
 	my $node_num = 0;
         for my $node (@{$line->{'nodes'}}) {
 	    $node_num++;
-            if      ($node->isa("Text::KnuthPlass::Box")) {
+            if      ($node->isbox()) {
                 $line_str .= $node->value();
                 $x += $node->width();
-            } elsif ($node->isa("Text::KnuthPlass::Glue")) {
+            } elsif ($node->is_glue()) {
 	        # remove last node (it's useless glue)
                 if ($node_num == $node_count) { last; }
 
                 my $width = $spaces_list[$spaces_node++];
 	        $x += $width;
 		$line_str .= ' ' x $width;
-            } elsif ($node->isa("Text::KnuthPlass::Penalty")) {
+            } elsif ($node->is_penalty()) {
 	        # no action at this time (common at hyphenation points, is
 		# of interest if hyphenated word at end of line)
 	    }
         }
         # add hyphen to text ONLY if fragment didn't already end with some
-        # sort of hyphen or dash 
+        # sort of hyphen or dash
         if ($useSplitHyphen) {
-	    $line_str .= $split_hyphen; 
+	    $line_str .= $split_hyphen;
         }
 
 	$line_str = margin_lines($line_str);
@@ -483,7 +483,7 @@ sub write_paragraph {
 
         $y--;  # next line down
 	$ytop = $y;
-	if ($y <= $ybot) { 
+	if ($y <= $ybot) {
 	    fresh_page();
 	    $ytop = $y = $pageTop;
 	}
@@ -512,7 +512,7 @@ sub get_spaces {
 
     # for nodes in line, build various glue/space-related counters and lists
     for my $node (@{$line->{'nodes'}}) {
-        if ($node->isa("Text::KnuthPlass::Glue")) {
+        if ($node->is_glue()) {
 	    # ignore if glue after last box
 	    # we're also not going to examine box's text, but it's at the end
 	    #   of the line, so it's irrelevant for our space-counting effort.
@@ -527,7 +527,7 @@ sub get_spaces {
 	    #   but since we DO see the last syllable, that's all we need.
 	    my $nodeB = $line->{'nodes'}->[$node_num-1];
 	    # probably shouldn't see a Box two back, but just in case...
-	    if (!$nodeB->isa("Text::KnuthPlass::Box")) {
+	    if (!$nodeB->is_box()) {
 	        $nodeB = $line->{'nodes'}->[$node_num-2];
 	    }
 	    my $text = $nodeB->value(); # text in Box this Glue applies to
@@ -558,7 +558,7 @@ sub get_spaces {
     # have arrays of space types, list (count); and total of each type
     # now, how many spaces do we need to sprinkle around?
     # for text output, should never see a ratio < 0
-    if (scalar(@spaces_type) && 
+    if (scalar(@spaces_type) &&
 	($ratio > 0 || $const > 0 && $adding_hyphen)) {
         # there is at least one space (glue node) in line
         my $add_spaces = 0;
@@ -581,7 +581,7 @@ sub get_spaces {
 	# line width may have been shortened by $const -- if didn't add
 	# a hyphen, we have an extra space to add
 	if ($const > 0 && !$adding_hyphen) { $add_spaces++; }
-	 
+
         # distribute this count of spaces around the line, with priority
         # to type 2, then type 1, then type 0
 	while ($add_spaces) {
@@ -596,7 +596,7 @@ sub get_spaces {
 		            $add_spaces--;
 		        }
 		    } else {
-		        # can't completely fill this tier... 
+		        # can't completely fill this tier...
 		#############################################################
 		# Don't want to introduce visual artefacts by bunching up   #
 		# all the newly added spaces on one side or the other.      #
@@ -632,7 +632,7 @@ sub get_spaces {
         # note that some lines may overflow right margin, KP is a little
         # flaky when trying to handle constant width fonts or text
         for my $node (@{$line->{'nodes'}}) {
-            if ($node->isa("Text::KnuthPlass::Glue")) {
+            if ($node->is_glue()) {
 	        push @list, 1;
 	    }
         }
@@ -673,10 +673,10 @@ sub dump_lines {
 
     if ($line_dump) {
         # dump @lines
-         foreach (@lines) { 
+         foreach (@lines) {
            # $_ is a hashref
            print "========== new line ==============\n";
-           foreach my $key (sort keys %$_) { 
+           foreach my $key (sort keys %$_) {
              my $value = $_->{$key};
              if ($key eq 'nodes') {
                print "$key:\n";
@@ -701,7 +701,7 @@ sub dump_lines {
                # not sure what position is (x position at raw end of line?)
                print "$key = $value, ";
              }
-           } 
+           }
            print "\n";
          }
     }

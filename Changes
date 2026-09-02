@@ -1,12 +1,52 @@
-2026-07-27  1.08  (Phil M Perry)   UNRELEASED
+2026-08-31  1.08  (Phil M Perry)   UNRELEASED
 * = work in progress, no promises it will be in this release!
 
+* lib/Text/KnuthPlass.pm
+   Remove constant 'purePerl' and implement 'purePerl' option (in new()).
+    0 (default) continues to use XS if possible, 1 uses only pure Perl code
+    (useful if XS code build failed for some reason).
+
+  examples/*, lib/Text/KnuthPlass.pm
+   Update code all node->isa("Text::KnuthPlass::<Type>") to node->is_<type>()
+
+  README.md
+   Change "Home Page" from catskilltech.com to PhilterPaper.github.io page.
+
+  lib/Text/KnuthPlass.pm
+   Add some more default parameters (options):
+    badness: multiplier for cube of tightness ratio in figuring 'badness'
+             and 'fitness' class. Default 100.
+    min_suffix: minimum length of the last fragment (in characters). Default 3.
+                This is used only for the default (Text::Hyphen) hyphenator.
+                If you wish to specify a hyphenator, you need to explicitly give
+                it the minimum length, or a language code it knows the length
+                rules for.
+    min_hyph_len: minimum length of a word to bother considering hyphenating
+                  it. Default 7.
+    The default setting for 'hyphenator' has been moved to the new() method so
+    that 'min_suffix' may be applied to the default instantiation of
+    Text::Hyphen (if installed). The user may also continue to manually set
+    'hyphenator' (including any minimum suffix length -- "min_suffix" is NOT used)
+
+  README.md (changed from README), INFO/RoadMap.md (new), MANIFEST, 
+    tools/md2html.pl (new)
+   Update README and Road Map files. Add utility for converting Markdown
+    to HTML (uses Text::MultiMarkdown).
+
   lib/Text/KnuthPlass.xs, lib/Text/Knuthplass.pm
-   Compare against bramstein/typeset, add documentation (comments) and fix 
+   Compare against bramstein/typeset, add documentation (comments) and fix
     some errors (bring into conformance with typeset code). This includes
-    badness = ratio**3 changed to |ratio|**3, and demerits being sum of
-    squares rather than simple addition.
-*  TBD: full line-by-line compare against linebreak.js.
+    * badness = ratio**3 changed to |ratio|**3
+    * demerits being sum of squares rather than simple addition
+    * change ~0 constant to $self->infinity(), rather than max possible 32 or
+      64 bit integer (all 1's, but seems to act as max integer value rather
+      than -1).
+    * tightness (fitness) check ratio < -1 change to ratio <= -1, as a
+      tightness of -1 means a line is unusable (glue squeezed down to 0
+      length).
+*  in process: full line-by-line compare against original source linebreak.js.
+   Some changes to linebreak.js (bramstein/typeset) all the way back to 2009
+   appear to have never made it into Text::KnuthPlass!
 
   SECURITY.md (new), MANIFEST, META.json, META.yml
    Fix Kwalitee Issues: add SECURITY.md with contact address, per Builder.
@@ -35,10 +75,10 @@
 2022-10-03  1.07  (Phil M Perry)
 
   lib/Text/KnuthPlass.xs, lib/Text/KnuthPlass.pm, t/01-nodes.t
-   Fix mishandling of line length array in XS code (was only looking at first 
+   Fix mishandling of line length array in XS code (was only looking at first
     two elements), #7. Remove elements as used, and return to application.
 
-  examples/text/KP.pl (new), examples/text/Flatland.pl (new), 
+  examples/text/KP.pl (new), examples/text/Flatland.pl (new),
     examples/text/Triangle.pl (new), MANIFEST, tools/3_examples.pl
    Add more examples, this time for text file (.txt) output (constant width).
 
@@ -48,17 +88,17 @@
 
   lib/Text/KnuthPlass.pm, lib/Text/KnuthPlass.xs, examples/*, t/01-nodes.t
    Pass paragraph indentation (or negative outdent amount) to KP algorithm, so
-    can start even the first line of paragraph at same x value every time. 
+    can start even the first line of paragraph at same x value every time.
     Allow per-paragraph setting of indentation via typeset() method and the new
     line_lengths() method. For compatibility with older applications, the
     default indentation is 0.
 
   lib/Text/KnuthPlass.pm, README.md
-   Add flag to ignore XS code (whether or not successfully installed) and just 
+   Add flag to ignore XS code (whether or not successfully installed) and just
     run pure Perl. This is good for debugging, watching paint dry, or torturing
     your users! In other words, pure Perl is quite slow.
 
-  lib/Text/KnuthPlass.pm 
+  lib/Text/KnuthPlass.pm
    Add flag for minimum 3 letter suffix in hyphenation (not sure Text::Hyphen
     is obeying it).
 
@@ -82,7 +122,7 @@
   README.md, lib/Text/KnuthPlass.pm
    2022 copyright
 
-  lib/Text/KnuthPlass.xs 
+  lib/Text/KnuthPlass.xs
    Fix compiler warnings (#8).
 
   In examples, change lead() to leading() per PDF::API2 and PDF::Builder.
@@ -107,7 +147,7 @@
    2021 copyright. NOT archiving Changes, yet. kp.html moved to INFO/.
 
   MANIFEST, kp.html, RoadMap, .gitignore, lib/Text/KnuthPlass.pm
-   Ship documentation (POD) kp.html (also on GitHub). 
+   Ship documentation (POD) kp.html (also on GitHub).
     Roadmap/discussions/thoughts (RoadMap) in public on GitHub (Read-Only).
 
 2020-12-29  1.05  (Phil M Perry)
@@ -121,7 +161,7 @@
   META.yml, README.md
    Clean up support-related email addresses and pages.
 
-  README.md  remove example code (is still found in examples/KP.pl) to 
+  README.md  remove example code (is still found in examples/KP.pl) to
     shorten this file to a reasonable length.
 
   META.yml
@@ -129,7 +169,7 @@
     to GitHub because RT ticket system is going away in March.
 
   t/02-javascript.t
-   Got another floating point failure (long double or quadmath), so went 
+   Got another floating point failure (long double or quadmath), so went
     ahead and rounded the rest of the floating point constants in that test.
 
 2020-12-10  1.04  (Phil M Perry)
@@ -154,10 +194,10 @@
     module (rename to _unlinkKP).
 
   Build.PL, README.md, MANIFEST
-   Change authorship statement, write a much more complete README 
+   Change authorship statement, write a much more complete README
     (with markdown).
 
-  t/00-load.t, t/02-javascript.t, t/pod-coverage.t, t/pod.t, 
+  t/00-load.t, t/02-javascript.t, t/pod-coverage.t, t/pod.t,
     lib/Text/KnuthPlass.pm
    Fix Perl Critic complaints. Currently ignoring "multiple package 
     declarations" in KnuthPlass.pm, might in the future split up the file.
@@ -248,5 +288,5 @@
 
   * Build.PL, Changes, MANIFEST, META.yml, Makefile.PL, README,
   lib/Text/KnuthPlass.pm, t/00-load.t, t/pod-coverage.t, t/pod.t: initial
-  import of Text::KnuthPlass 0.01 from CPAN  git-cpan-module:  
+  import of Text::KnuthPlass 0.01 from CPAN  git-cpan-module:
   Text::KnuthPlass git-cpan-version:  0.01 git-cpan-authorid: SIMON

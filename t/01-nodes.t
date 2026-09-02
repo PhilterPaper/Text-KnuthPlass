@@ -15,13 +15,13 @@ my $t = Text::KnuthPlass->new(
 sub dump_nodelist {
     my $output; 
     for (@_) {
-        if ($_->isa("Text::KnuthPlass::Box")) { 
+        if ($_->is_box()) { 
             $output .= "[".$_->value()."/".$_->width()."]";
         }
-        if ($_->isa("Text::KnuthPlass::Glue")) {
+        if ($_->is_glue()) {
             $output .= "<".$_->width()."+".$_->stretch()."-".$_->shrink().">";
         }
-        if ($_->isa("Text::KnuthPlass::Penalty")) {
+        if ($_->is_penalty()) {
             $output .= "(".$_->penalty().($_->flagged() && "!").")";
         }
     }
@@ -52,8 +52,8 @@ my @lines = $t->typeset($para);
 my $output;
 for (@lines) {
     for (@{$_->{'nodes'}}) {
-        if ($_->isa("Text::KnuthPlass::Box")) { $output .= $_->value() }
-        elsif ($_->isa("Text::KnuthPlass::Glue")) { $output .= " "; }
+        if ($_->is_box())) { $output .= $_->value() }
+        elsif ($_->is_glue()) { $output .= " "; }
     }
     if ($_->{'nodes'} and $_->{'nodes'}[-1]->is_penalty()) { $output .= "-"; }
     $output .="\n";
@@ -77,8 +77,8 @@ sub out_text {
     $output = "";
     for my $line (@lines) {
         for (@{$line->{'nodes'}}) {
-            if ($_->isa("Text::KnuthPlass::Box")) { $output .= $_->value(); }
-            elsif ($_->isa("Text::KnuthPlass::Glue")) { 
+            if ($_->is_box()) { $output .= $_->value(); }
+            elsif ($_->is_glue()) { 
                 my $w = int(0.5+( $_->width() + $line->{'ratio'} *
                 ($line->{'ratio'} < 0 ? $_->shrink() : $_->stretch())));
                 $output .= " " x $w;
@@ -112,8 +112,8 @@ sub out_text6 {
     $output = "";
     for my $line (@lines) {
         for (@{$line->{'nodes'}}) {
-            if ($_->isa("Text::KnuthPlass::Box")) { $output .= $_->value(); }
-            elsif ($_->isa("Text::KnuthPlass::Glue")) { 
+            if ($_->is_box()) { $output .= $_->value(); }
+            elsif ($_->is_glue()) { 
 #               my $w = int(0.5+( $_->width() + $line->{'ratio'} *
 #               ($line->{'ratio'} < 0 ? $_->shrink() : $_->stretch())));
 #               $output .= " " x $w;

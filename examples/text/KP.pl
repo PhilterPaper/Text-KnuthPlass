@@ -316,7 +316,7 @@ sub write_paragraph {
     # + or - indent amount. if negative indent, xleft+indent better be >= 0
     my $indent = 0;
     my $node1 = $lines[0]->{'nodes'}->[0]; 
-    if ($node1->isa("Text::KnuthPlass::Box") && $node1->value() eq '') {
+    if ($node1->is_box() && $node1->value() eq '') {
 	# we have an indent value (for first line) + or -
 	$indent = $node1->width();
 	shift @{ $lines[0]->{'nodes'} }; # get rid of indent box
@@ -342,7 +342,7 @@ sub write_paragraph {
         if ($line->{'nodes'}[-1]->is_penalty()) { 
 	    # last word in line is split (hyphenated). node[-2] must be a Box?
 	    my $lastChar = '';
-            if ($line->{'nodes'}[-2]->isa("Text::KnuthPlass::Box")) {
+            if ($line->{'nodes'}[-2]->is_box()) {
 	        $lastChar = substr($line->{'nodes'}[-2]->value(), -1, 1);
                 if ($lastChar eq '-'      || # ASCII hyphen
 		    $lastChar eq '\x2010' || # hyphen
@@ -359,7 +359,7 @@ sub write_paragraph {
 		    $useSplitHyphen = 1;
 	            my $number_glues = 0;
 	            for my $node (@{$line->{'nodes'}}) {
-	                if ($node->isa("Text::KnuthPlass::Glue")) { $number_glues++; }
+	                if ($node->is_glue()) { $number_glues++; }
 	            }
 	            # TBD if no glues in this line, or if reduction amount makes
 		    #   glue too close to 0 in width, have to do something else!
@@ -385,17 +385,17 @@ sub write_paragraph {
 	my $node_num = 0;
         for my $node (@{$line->{'nodes'}}) {
 	    $node_num++;
-            if      ($node->isa("Text::KnuthPlass::Box")) {
+            if      ($node->is_box()) {
                 $line_str .= $node->value();
                 $x += $node->width();
-            } elsif ($node->isa("Text::KnuthPlass::Glue")) {
+            } elsif ($node->is_glue()) {
 	        # remove last node (it's useless glue)
                 if ($node_num == $node_count) { last; }
 
                 my $width = $spaces_list[$spaces_node++];
 	        $x += $width;
 		$line_str .= ' ' x $width;
-            } elsif ($node->isa("Text::KnuthPlass::Penalty")) {
+            } elsif ($node->is_penalty()) {
 	        # no action at this time (common at hyphenation points, is
 		# of interest if hyphenated word at end of line)
 	    }
@@ -440,7 +440,7 @@ sub get_spaces {
 
     # for nodes in line, build various glue/space-related counters and lists
     for my $node (@{$line->{'nodes'}}) {
-        if ($node->isa("Text::KnuthPlass::Glue")) {
+        if ($node->is_glue()) {
 	    # ignore if glue after last box
 	    # we're also not going to examine box's text, but it's at the end
 	    #   of the line, so it's irrelevant for our space-counting effort.
@@ -455,7 +455,7 @@ sub get_spaces {
 	    #   but since we DO see the last syllable, that's all we need.
 	    my $nodeB = $line->{'nodes'}->[$node_num-1];
 	    # probably shouldn't see a Box two back, but just in case...
-	    if (!$nodeB->isa("Text::KnuthPlass::Box")) {
+	    if (!$nodeB->is_box()) {
 	        $nodeB = $line->{'nodes'}->[$node_num-2];
 	    }
 	    my $text = $nodeB->value(); # text in Box this Glue applies to
@@ -560,7 +560,7 @@ sub get_spaces {
         # note that some lines may overflow right margin, KP is a little
         # flaky when trying to handle constant width fonts or text
         for my $node (@{$line->{'nodes'}}) {
-            if ($node->isa("Text::KnuthPlass::Glue")) {
+            if ($node->is_glue()) {
 	        push @list, 1;
 	    }
         }
